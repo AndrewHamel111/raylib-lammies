@@ -1,4 +1,5 @@
 #include "resources.h"
+#include "card/resources.h"
 #include "utility.h"
 
 #if USE_RRES
@@ -47,6 +48,11 @@ int slide_last_index = 0;
 #define SFX_DOORBELL_COUNT 3
 Sound sfx_doorbell[SFX_DOORBELL_COUNT];
 int doorbell_last_index = 0;
+
+Texture2D tex_card_small[4][13];
+Texture2D tex_card_small_extra[3]; // Back, Joker Black, Joker Red
+Texture2D tex_card_large[4][13];
+Texture2D tex_card_large_extra[3]; // Back, Joker Black, Joker Red
 
 static Texture2D LoadTextureInternal(const char* path)
 {
@@ -112,13 +118,13 @@ static Font LoadFontInternal(const char* path)
 #endif
 }
 
-void LoadUIAssets(void)
+static void LoadUIAssets(void)
 {
 	fnt_receipt = LoadFontInternal("resources/BMREA___.TTF");
 	fnt_pop = LoadFontInternal("resources/gomarice_rockin_record.ttf");
 }
 
-void LoadAudio(void)
+static void LoadAudio(void)
 {
 	music_bgm = LoadMusicInternal("resources/sound/music.wav");
 
@@ -126,7 +132,7 @@ void LoadAudio(void)
 //	SetSoundVolume(sfx_example, 0.65f);
 }
 
-void LoadRandomizableSounds(void)
+static void LoadRandomizableSounds(void)
 {
 	for (int i = 0; i < SFX_DISCARD_COUNT; i++)
 	{
@@ -144,6 +150,27 @@ void LoadRandomizableSounds(void)
 	}
 }
 
+static void LoadCardTextures(void)
+{
+	for (int suit = 0; suit < 4; suit++)
+	{
+		const char* suitName = SuitName_Lower(suit);
+		for (int rank = 0; rank < 13; rank++)
+		{
+			tex_card_small[suit][rank] = LoadTextureInternal(TextFormat("resources/textures/cards/small/%s/%d.png", suitName, rank));
+			tex_card_large[suit][rank] = LoadTextureInternal(TextFormat("resources/textures/cards/large/%s/%d.png", suitName, rank));
+		}
+	}
+
+	tex_card_small_extra[0] = LoadTextureInternal("resources/textures/cards/small/back.png");
+	tex_card_small_extra[1] = LoadTextureInternal("resources/textures/cards/small/joker_black.png");
+	tex_card_small_extra[2] = LoadTextureInternal("resources/textures/cards/small/joker_red.png");
+
+	tex_card_large_extra[0] = LoadTextureInternal("resources/textures/cards/large/back.png");
+	tex_card_large_extra[1] = LoadTextureInternal("resources/textures/cards/large/joker_black.png");
+	tex_card_large_extra[2] = LoadTextureInternal("resources/textures/cards/large/joker_red.png");
+}
+
 void LoadResources(void)
 {
 #if USE_RRES
@@ -151,6 +178,7 @@ void LoadResources(void)
 #endif
 
 	LoadUIAssets();
+	LoadCardTextures();
 
 	LoadAudio();
 	LoadRandomizableSounds();
@@ -192,4 +220,66 @@ Sound GetDiscardSFX(void)
 Sound GetDoorbellSFX(void)
 {
 	return GetRandomizedSFX(sfx_doorbell, SFX_DOORBELL_COUNT, &doorbell_last_index);
+}
+
+Texture2D GetCardSmall(const Card* card)
+{
+	if (card->suit < 0 || card->suit > 3)
+	{
+		TraceLog(LOG_WARNING, "GetCardSmall failed due to invalid suit!");
+		return (Texture2D){0};
+	}
+
+	if (card->rank < Joker || card->rank > King)
+	{
+		TraceLog(LOG_WARNING, "GetCardSmall failed due to invalid rank!");
+		return (Texture2D){0};
+	}
+
+	if (card->rank == Joker)
+	{
+		int suit = (card->suit == Diamonds || card->suit == Hearts) ? 2 : 1;
+		return tex_card_small_extra[suit];
+	}
+
+	return tex_card_small[card->suit][card->rank];
+}
+
+Texture2D GetCardLarge(const Card* card)
+{
+	if (card->suit < 0 || card->suit > 3)
+	{
+		TraceLog(LOG_WARNING, "GetCardLarge failed due to invalid suit!");
+		return (Texture2D){0};
+	}
+
+	if (card->rank < Joker || card->rank > King)
+	{
+		TraceLog(LOG_WARNING, "GetCardLarge failed due to invalid rank!");
+		return (Texture2D){0};
+	}
+
+	if (card->rank == Joker)
+	{
+		int suit = (card->suit == Diamonds || card->suit == Hearts) ? 2 : 1;
+		return tex_card_large_extra[suit];
+	}
+
+	return tex_card_large[card->suit][card->rank];
+}
+
+Rectangle GetCardSourceSmall(void)
+{
+	return R(6, 2, 20, 29);
+}
+
+Rectangle GetCardSourceLarge(void)
+{
+	return R(11, 2, 42, 60);
+}
+
+Texture2D GetCardValue(Suit suit, Rank rank, bool small)
+{
+	Texture2D result;
+	return result;
 }

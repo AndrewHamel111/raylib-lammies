@@ -18,6 +18,8 @@ add_executable(raylib-lammies ${SOURCES})
 
 target_link_libraries(raylib-lammies PRIVATE raylib)
 
+target_include_directories(raylib-lammies PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
 target_compile_options(raylib-lammies PRIVATE
         -Werror=implicit-function-declaration
         -Werror=builtin-declaration-mismatch

@@ -7,9 +7,10 @@
 #include "constants.h"
 #include "game.h"
 #include "menu.h"
-#include "timer.h"
-
 #include "resources.h"
+
+#include "utility/timer.h"
+#include "utility/tween.h"
 
 bool showGame = false;
 bool quitApp = false;
@@ -37,7 +38,7 @@ int main(void)
 	MenuInit();
 #endif
 
-	SetTimer(0.5f, StartMusic);
+	SetTimer(120.0f, StartMusic);
 
 	while (!WindowShouldClose() && !quitApp)
 	{
@@ -53,7 +54,9 @@ int main(void)
 			ToggleBorderlessWindowed();
 		}
 
-		TickTimer(GetFrameTime());
+		float ft = GetFrameTime();
+		TickTimer(ft);
+		TickTweens(ft);
 		
 		if (showGame)
 		{

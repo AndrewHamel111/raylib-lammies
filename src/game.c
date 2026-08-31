@@ -10,6 +10,10 @@
 #include "debug.h"
 #include "debug_menu.h"
 
+#include "card.h"
+#include "card/manager.h"
+#include "card/lock_timers.h"
+
 #include <string.h>
 #include <stdlib.h>
 
@@ -18,6 +22,7 @@
 void GameInit(void)
 {
 	// game setup //
+    CardManagerInit();
 }
 
 void GameLoop(void)
@@ -31,10 +36,19 @@ void GameLoop(void)
 //		ReturnToMainMenu();
 	}
 
+	float ft = GetFrameTime();
+    CardManagerUpdate(ft);
+	TickCardLocks(ft);
+
     // Draw //
 	BeginDrawing();
 	{
 		ClearBackground(RAYWHITE);
+
+        CardManagerDrawAllCards();
+
+        DebugMenuDraw();
+        DrawFPS(10, 10);
 	}
 	EndDrawing();
 }
