@@ -24,6 +24,7 @@ void CardDraw(const Card* card, float alpha)
 			break;
 		case CardStateFlippingDownOut:
 		case CardStateFlippingUpOut:
+            // TODO: folks say to look into different easings, aight
 			dest.width = EaseCubicOut(t, 0, fullWidth, 1.0f);
 			dest.x -= 0.5f * (dest.width - fullWidth);
 			break;
