@@ -6,13 +6,14 @@
 #include "utility.h"
 #include "constants.h"
 
-#define MENU_WIDTH 300
+#define MENU_WIDTH 200
 
 // Add extern functions here for important gameplay logic you want to trigger! Alternatively, add a button which sets a
 // bool here, and poll that bool from the appropriate place in the game's logic
 
 static bool showDebugMenu;
-static bool exampleBool;
+static bool showDrawTests;
+static bool drawDeckTest;
 static bool useVSync;
 
 // This style of bool (disposed after use) is an annoying enough pattern (static bool, bool function, prototype in
@@ -30,7 +31,12 @@ bool debugDrawCardsSmall;
 
 bool DebugExampleBool(void)
 {
-	return exampleBool;
+	return showDrawTests;
+}
+
+bool DebugShowDeckDrawTest(void)
+{
+	return drawDeckTest;
 }
 
 bool DebugSpawnCard(void)
@@ -109,7 +115,7 @@ static Rectangle NextCheckboxRec(void)
 
 static Rectangle NextHalfButton(void)
 {
-	Rectangle r = R(X, Y, 50, 20);
+	Rectangle r = R(X, Y, (MENU_WIDTH * 0.5f) - 10, 20);
 
 	if (right_half)
 	{
@@ -118,7 +124,7 @@ static Rectangle NextHalfButton(void)
 	}
 	else
 	{
-		X += 50 + 10;
+		X += (MENU_WIDTH * 0.5f) + 10;
 	}
 
 	right_half = !right_half;
@@ -128,7 +134,7 @@ static Rectangle NextHalfButton(void)
 
 static Rectangle NextButton(void)
 {
-	Rectangle r = R(X, Y, 110, 20);
+	Rectangle r = R(X, Y, MENU_WIDTH, 20);
 
 	Y += 20 + 10;
 
@@ -162,30 +168,25 @@ void DebugMenuDraw(void)
 	X = X_start + 10;
 	Y = Y_start + 10;
 
-	GuiCheckBox(NextCheckboxRec(), "Example Bool", &exampleBool);
-	if (exampleBool)
+	GuiCheckBox(NextCheckboxRec(), "Draw Tests", &showDrawTests);
+	if (showDrawTests)
 	{
-		GuiLabel(NextLabel(), "Extra Controls");
-		if (GuiButton(NextHalfButton(), "<--"))
-		{
-		}
-		if (GuiButton(NextHalfButton(), "-->"))
-		{
-		}
+		GuiCheckBox(NextCheckboxRec(), "Draw Deck Test", &drawDeckTest);
 	}
-    if(GuiButton(NextButton(), "Spawn Card"))
+	GuiLabel(NextLabel(), "-== Test Commands ==-");
+    if(GuiButton(NextHalfButton(), "Spawn Card"))
     {
         spawnCard = true;
     }
-	if(GuiButton(NextButton(), "Deck Test"))
+	if(GuiButton(NextHalfButton(), "Deck Test"))
 	{
 		deckTest = true;
 	}
-	if(GuiButton(NextButton(), "Shuffle Deck"))
+	if(GuiButton(NextHalfButton(), "Shuffle Deck"))
 	{
 		shuffleDeck = true;
 	}
-	if(GuiButton(NextButton(), "Clear Cards"))
+	if(GuiButton(NextHalfButton(), "Clear Cards"))
 	{
 		clearCards = true;
 	}
@@ -194,7 +195,7 @@ void DebugMenuDraw(void)
 		reinitDeck = true;
 	}
 
-	GuiLabel(NextButton(), "-== Settings ==-");
+	GuiLabel(NextLabel(), "-== Settings ==-");
 	if (GuiCheckBox(NextCheckboxRec(), "Use VSync", &useVSync))
 	{
 		if (useVSync)

@@ -7,9 +7,12 @@
 #include "utility/tween.h"
 #include "lock_timers.h"
 #include "card/deck.h"
+#include "card/animation.h"
 
 static Card* held_card = NULL;
 static Vector2 held_card_offset = {0};
+
+static Deck main_deck;
 
 const Card* GetHeldCard(void)
 {
@@ -19,7 +22,7 @@ const Card* GetHeldCard(void)
 void CardManagerInit(void)
 {
     held_card = NULL;
-	InitDeck();
+	InitDeck(&main_deck);
 }
 
 void CardManagerUpdate(float ft)
@@ -46,6 +49,22 @@ void CardManagerUpdate(float ft)
         held_card = NULL;
     }
 
+	if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
+	{
+		if (held_card)
+		{
+			CardFlip(held_card);
+		}
+		else
+		{
+			Card* cardToFlip = MousePickCard(mpos);
+			if (cardToFlip)
+			{
+				CardFlip(cardToFlip);
+			}
+		}
+	}
+
     if (held_card)
     {
         held_card->_position = Vector2Add(mpos, held_card_offset);
@@ -54,20 +73,14 @@ void CardManagerUpdate(float ft)
     // DEBUG
 	if (DebugSpawnCard())
     {
-//        Card* newCard = CreateCard(
-//            V(GetScreenWidth() * 0.5f, -200),
-//            GetRandomValue(0, 3),
-//            GetRandomValue(0, 12)
-//        );
-
-		if (GetDeckCount() > 0)
+		if (GetDeckCount(&main_deck) > 0)
 		{
-			Card* newCard = AddCardValue(DrawNewCardValue());
+			Card* newCard = AddCardValue(DrawNewCardValue(&main_deck));
 
 			Vector2 cardSize = CardGetSize(newCard);
-			Vector2 startPosition = V((GetScreenWidth() * 0.5f) - (cardSize.x * 0.5f), 32 - cardSize.y);
+			Vector2 startPosition = V((GetScreenWidth() * 0.5f), 32 - cardSize.y);
 			Vector2 cardDest = startPosition;
-			cardDest.y = 64;
+			cardDest.y = 64 + (cardSize.y / 2);
 			newCard->_position = startPosition;
 
 			/* TODO: Tweening card values directly will not work, as cards get moved around and thus the pointer to their
@@ -88,17 +101,17 @@ void CardManagerUpdate(float ft)
 		TraceLog(LOG_INFO, "");
 		TraceLog(LOG_INFO, "");
 
-		int deckCount = GetDeckCount();
+		int deckCount = GetDeckCount(&main_deck);
 		for (int i = 0; i < deckCount; i++)
 		{
-			Card card = DrawNewCard();
+			Card card = DrawNewCard(&main_deck);
 			TraceLog(LOG_INFO, "----======----");
 			TraceLog(LOG_INFO, "%s of %s", RankName(card.rank), SuitName(card.suit));
 		}
 	}
 	else if (DebugShuffleDeck())
 	{
-		Shuffle();
+		Shuffle(&main_deck);
 	}
 	else if (DebugClearCards())
 	{
@@ -107,18 +120,19 @@ void CardManagerUpdate(float ft)
 		for (int i = count - 1; i >= 0; i--)
 		{
 			DeleteCard(cards + i);
-			ReturnCardTo(cards[i], DeckBottom);
+			ReturnCardTo(&main_deck, cards[i], DeckBottom);
 		}
 	}
 	else if (DebugReinitDeck())
 	{
-		InitDeck();
+		InitDeck(&main_deck);
 		DeleteAllCards();
 	}
 }
 
 void CardManagerDrawAllCards(void)
 {
+	float ft = GetFrameTime();
     int cardsCount = 0;
     Card* cards = GetCards(&cardsCount);
     for (int i = 0; i < cardsCount; ++i)
@@ -126,6 +140,24 @@ void CardManagerDrawAllCards(void)
         Card* card = cards + i;
 		float alpha = card->_locked ? 0.6f : 1.0f;
         CardDraw(card, alpha);
+
+		if (card->_animationState != CardStateDefault)
+		{
+			card->_flipTime -= ft;
+			if (card->_flipTime < 0)
+			{
+				if (card->_animationState == CardStateFlippingDownIn || card->_animationState == CardStateFlippingUpIn)
+				{
+					card->_faceUp = ! card->_faceUp;
+					card->_flipTime = CARD_FLIP_TIME;
+					card->_animationState++;
+				}
+				else
+				{
+					card->_animationState = CardStateDefault;
+				}
+			}
+		}
     }
 }
 

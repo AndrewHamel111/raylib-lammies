@@ -268,6 +268,26 @@ Texture2D GetCardLarge(const Card* card)
 	return tex_card_large[card->suit][card->rank];
 }
 
+Texture2D GetCardBackSmall(void)
+{
+	return tex_card_small_extra[0];
+}
+
+Texture2D GetCardBackLarge(void)
+{
+	return tex_card_large_extra[0];
+}
+
+Texture2D GetCardJokerSmall(bool red)
+{
+	return red ? tex_card_small_extra[2] : tex_card_small_extra[1] ;
+}
+
+Texture2D GetCardJokerLarge(bool red)
+{
+	return red ? tex_card_large_extra[2] : tex_card_large_extra[1] ;
+}
+
 Rectangle GetCardSourceSmall(void)
 {
 	return R(6, 2, 20, 29);

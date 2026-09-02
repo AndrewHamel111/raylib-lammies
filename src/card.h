@@ -28,10 +28,22 @@ typedef enum Rank
     Joker = -1
 } Rank;
 
+typedef enum CardAnimationState
+{
+	CardStateDefault = 0,
+	CardStateFlippingUpIn,
+	CardStateFlippingUpOut,
+	CardStateFlippingDownIn,
+	CardStateFlippingDownOut,
+} CardAnimationState;
+
 typedef struct Card
 {
     Vector2 _position;
     bool _locked;
+	CardAnimationState _animationState;
+	bool _faceUp;
+	float _flipTime;
 
     Suit suit;
     Rank rank;

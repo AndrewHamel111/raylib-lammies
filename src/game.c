@@ -13,6 +13,7 @@
 #include "card.h"
 #include "card/manager.h"
 #include "card/lock_timers.h"
+#include "card/resources.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -46,6 +47,53 @@ void GameLoop(void)
 		ClearBackground(RAYWHITE);
 
         CardManagerDrawAllCards();
+
+		if (DebugShowDeckDrawTest())
+		{
+			float offset = 6;
+			Rectangle dest = R(256, 128, 168, 240);
+			DrawTexturePro(GetCardBackLarge(), GetCardSourceLarge(), dest, V(0,0), 0.0f, WHITE);
+			dest.y -= offset;
+			DrawTexturePro(GetCardBackLarge(), GetCardSourceLarge(), dest, V(0,0), 0.0f, WHITE);
+			dest.y -= offset;
+			DrawTexturePro(GetCardBackLarge(), GetCardSourceLarge(), dest, V(0,0), 0.0f, WHITE);
+			dest.y -= offset;
+			DrawTexturePro(GetCardBackLarge(), GetCardSourceLarge(), dest, V(0,0), 0.0f, WHITE);
+
+			dest.y += 300;
+			DrawTexturePro(GetCardBackLarge(), GetCardSourceLarge(), dest, V(0,0), 0.0f, WHITE);
+			dest.y -= offset;
+			DrawTexturePro(GetCardBackLarge(), GetCardSourceLarge(), dest, V(0,0), 0.0f, WHITE);
+			dest.y -= offset;
+			DrawTexturePro(GetCardBackLarge(), GetCardSourceLarge(), dest, V(0,0), 0.0f, WHITE);
+
+			dest.y += 300;
+			DrawTexturePro(GetCardBackLarge(), GetCardSourceLarge(), dest, V(0,0), 0.0f, WHITE);
+			dest.y -= offset;
+			DrawTexturePro(GetCardBackLarge(), GetCardSourceLarge(), dest, V(0,0), 0.0f, WHITE);
+
+			float soffset = 6;
+			Rectangle sdest = R(512, 128, 80, 116);
+			DrawTexturePro(GetCardBackSmall(), GetCardSourceSmall(), sdest, V(0,0), 0.0f, WHITE);
+			sdest.y -= soffset;
+			DrawTexturePro(GetCardBackSmall(), GetCardSourceSmall(), sdest, V(0,0), 0.0f, WHITE);
+			sdest.y -= soffset;
+			DrawTexturePro(GetCardBackSmall(), GetCardSourceSmall(), sdest, V(0,0), 0.0f, WHITE);
+			sdest.y -= soffset;
+			DrawTexturePro(GetCardBackSmall(), GetCardSourceSmall(), sdest, V(0,0), 0.0f, WHITE);
+
+			sdest.y += 200;
+			DrawTexturePro(GetCardBackSmall(), GetCardSourceSmall(), sdest, V(0,0), 0.0f, WHITE);
+			sdest.y -= soffset;
+			DrawTexturePro(GetCardBackSmall(), GetCardSourceSmall(), sdest, V(0,0), 0.0f, WHITE);
+			sdest.y -= soffset;
+			DrawTexturePro(GetCardBackSmall(), GetCardSourceSmall(), sdest, V(0,0), 0.0f, WHITE);
+
+			sdest.y += 200;
+			DrawTexturePro(GetCardBackSmall(), GetCardSourceSmall(), sdest, V(0,0), 0.0f, WHITE);
+			sdest.y -= soffset;
+			DrawTexturePro(GetCardBackSmall(), GetCardSourceSmall(), sdest, V(0,0), 0.0f, WHITE);
+		}
 
         DebugMenuDraw();
         DrawFPS(10, 10);

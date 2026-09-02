@@ -1,18 +1,43 @@
 #include "../card.h"
 #include "utility.h"
 #include "resources.h"
+#include "constants.h"
+#include "external/easings.h"
 
 extern bool debugDrawCardsSmall;
 
 void CardDraw(const Card* card, float alpha)
 {
+	Rectangle dest = CardGetRect(card);
+	float fullWidth = dest.width;
+	float t = 1.0f - (card->_flipTime / CARD_FLIP_TIME);
+
+	switch (card->_animationState)
+	{
+		case CardStateDefault:
+			// do nothing
+			break;
+		case CardStateFlippingDownIn:
+		case CardStateFlippingUpIn:
+			dest.width = EaseCubicOut(t, fullWidth, -fullWidth, 1.0f);
+			dest.x -= 0.5f * (dest.width - fullWidth);
+			break;
+		case CardStateFlippingDownOut:
+		case CardStateFlippingUpOut:
+			dest.width = EaseCubicOut(t, 0, fullWidth, 1.0f);
+			dest.x -= 0.5f * (dest.width - fullWidth);
+			break;
+	}
+
 	if (debugDrawCardsSmall)
 	{
-		DrawTexturePro(GetCardSmall(card), GetCardSourceSmall(), CardGetRect(card), V(0,0), 0.0f, Fade(WHITE,alpha));
+		Texture2D tex = card->_faceUp ? GetCardSmall(card) : GetCardBackSmall();
+		DrawTexturePro(tex, GetCardSourceSmall(), dest, V(0.5f, 0.5f), 0.0f, Fade(WHITE,alpha));
 	}
 	else
 	{
-		DrawTexturePro(GetCardLarge(card), GetCardSourceLarge(), CardGetRect(card), V(0,0), 0.0f, Fade(WHITE,alpha));
+		Texture2D tex = card->_faceUp ? GetCardLarge(card) : GetCardBackLarge();
+		DrawTexturePro(tex, GetCardSourceLarge(), dest, V(0.5f, 0.5f), 0.0f, Fade(WHITE,alpha));
 	}
 }
 
@@ -24,7 +49,7 @@ Vector2 CardGetSize(const Card* card)
 Rectangle CardGetRect(const Card* card)
 {
     Vector2 sz = CardGetSize(card);
-    return R(card->_position.x, card->_position.y, sz.x, sz.y);
+	return R(card->_position.x, card->_position.y, sz.x, sz.y);
 }
 
 static const char* suit_name_lower[] = {"clubs", "diamonds", "hearts", "spades"};
