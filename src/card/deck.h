@@ -1,7 +1,7 @@
 #pragma once
 
 #include "card.h"
-#include <sys/types.h>
+#include "utility/types.h"
 #include "constants.h"
 
 typedef enum DeckLocation
