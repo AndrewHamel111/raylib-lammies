@@ -40,6 +40,7 @@ typedef enum CardAnimationState
 typedef struct Card
 {
     Vector2 _position;
+	int id;
     bool _locked;
 	CardAnimationState _animationState;
 	bool _faceUp;
@@ -51,6 +52,8 @@ typedef struct Card
 } Card;
 
 void CardDraw(const Card* card, float alpha);
+void CardDrawHighlight(const Card* card, float alpha, Color highlight);
+void CardDrawShadowed(const Card* card, float alpha);
 Vector2 CardGetSize(const Card* card);
 Rectangle CardGetRect(const Card* card);
 

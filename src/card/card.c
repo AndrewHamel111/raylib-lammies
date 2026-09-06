@@ -3,10 +3,9 @@
 #include "resources.h"
 #include "constants.h"
 #include "external/easings.h"
+#include "debug.h"
 
-extern bool debugDrawCardsSmall;
-
-void CardDraw(const Card* card, float alpha)
+static void CardDrawInternal(const Card* card, float alpha, Color highlight, bool shadowed)
 {
 	Rectangle dest = CardGetRect(card);
 	float fullWidth = dest.width;
@@ -25,26 +24,64 @@ void CardDraw(const Card* card, float alpha)
 		case CardStateFlippingDownOut:
 		case CardStateFlippingUpOut:
             // TODO: folks say to look into different easings, aight
+			// May need to use one continuous easing for the whole motion
 			dest.width = EaseCubicOut(t, 0, fullWidth, 1.0f);
 			dest.x -= 0.5f * (dest.width - fullWidth);
 			break;
 	}
 
-	if (debugDrawCardsSmall)
+	Rectangle highlightDest = dest;
+	highlightDest.x -= CARD_HIGHLIGHT_EXTENT;
+	highlightDest.y -= CARD_HIGHLIGHT_EXTENT;
+	highlightDest.width += 2* CARD_HIGHLIGHT_EXTENT;
+	highlightDest.height += 2* CARD_HIGHLIGHT_EXTENT;
+
+	Rectangle shadowDest = dest;
+	if (shadowed)
 	{
+		dest.x -= CARD_SHADOW_OFFSET;
+		dest.y -= CARD_SHADOW_OFFSET;
+		DrawRectangleRounded(shadowDest, 0.1f, 4, Fade(BLACK, CARD_SHADOW_DARKNESS));
+	}
+
+	if (DebugDrawCardsSmall())
+	{
+		if (!ColorIsEqual(highlight, BLANK))
+		{
+			DrawRectangleRounded(highlightDest, 0.1f, 6, highlight);
+		}
 		Texture2D tex = card->_faceUp ? GetCardSmall(card) : GetCardBackSmall();
-		DrawTexturePro(tex, GetCardSourceSmall(), dest, V(0.5f, 0.5f), 0.0f, Fade(WHITE,alpha));
+		DrawTexturePro(tex, GetCardSourceSmall(), dest, V(0.5f, 0.5f), 0.0f, card->_locked ? LIGHTGRAY : WHITE);
 	}
 	else
 	{
+		if (!ColorIsEqual(highlight, BLANK))
+		{
+			DrawRectangleRounded(highlightDest, 0.1f, 6, highlight);
+		}
 		Texture2D tex = card->_faceUp ? GetCardLarge(card) : GetCardBackLarge();
-		DrawTexturePro(tex, GetCardSourceLarge(), dest, V(0.5f, 0.5f), 0.0f, Fade(WHITE,alpha));
+		DrawTexturePro(tex, GetCardSourceLarge(), dest, V(0.5f, 0.5f), 0.0f, card->_locked ? LIGHTGRAY : WHITE);
 	}
+}
+
+void CardDraw(const Card* card, float alpha)
+{
+	CardDrawInternal(card, alpha, BLANK, false);
+}
+
+void CardDrawHighlight(const Card* card, float alpha, Color highlight)
+{
+	CardDrawInternal(card, alpha, highlight, false);
+}
+
+void CardDrawShadowed(const Card* card, float alpha)
+{
+	CardDrawInternal(card, alpha, BLANK, true);
 }
 
 Vector2 CardGetSize(const Card* card)
 {
-    return debugDrawCardsSmall ? (Vector2){80, 116} : (Vector2){168, 240};
+    return DebugDrawCardsSmall() ? CARD_SIZE_SMALL : CARD_SIZE;
 }
 
 Rectangle CardGetRect(const Card* card)

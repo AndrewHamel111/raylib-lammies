@@ -4,6 +4,7 @@
 
 static Card cards[MAX_CARDS] = {0};
 static int cards_count = 0;
+static int next_id = 1;
 
 Card* GetCards(int* outCount)
 {
@@ -22,6 +23,7 @@ Card* CreateCard(Vector2 position, Suit suit, Rank rank)
     Card* card = cards + cards_count;
     cards_count++;
 
+	card->id = next_id++;
     card->_position = position;
     card->suit = suit;
     card->rank = rank;
@@ -40,6 +42,7 @@ Card* AddCard(Card card)
 
 	Card* newCard = cards + cards_count;
     *newCard = card;
+	newCard->id = next_id++;
     cards_count++;
 	return newCard;
 }
@@ -126,16 +129,21 @@ Card* MoveCardAtToTop(int index)
 
 Card* MousePickCard(Vector2 mpos)
 {
-    Card* heldCard = NULL;
+	return MousePickCardExcluding(mpos, NULL);
+}
 
-    for (int i = 0; i < cards_count; ++i)
-    {
-        Card* card = cards + i;
-        if (!card->_locked && CheckCollisionPointRec(mpos, CardGetRect(card)))
-        {
-            heldCard = card;
-        }
-    }
+Card* MousePickCardExcluding(Vector2 mpos, Card* excluded)
+{
+	Card* heldCard = NULL;
 
-    return heldCard;
+	for (int i = 0; i < cards_count; ++i)
+	{
+		Card* card = cards + i;
+		if (!card->_locked && CheckCollisionPointRec(mpos, CardGetRect(card)) && card != excluded)
+		{
+			heldCard = card;
+		}
+	}
+
+	return heldCard;
 }

@@ -121,3 +121,8 @@ int GetDeckCount(const Deck* deck)
 {
 	return deck->count;
 }
+
+bool DeckIsFull(const Deck* deck)
+{
+	return deck->count == DECK_MAX;
+}

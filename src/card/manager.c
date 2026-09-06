@@ -8,9 +8,15 @@
 #include "lock_timers.h"
 #include "card/deck.h"
 #include "card/animation.h"
+#include "object.h"
+#include "object/management.h"
+#include "object/reserve.h"
 
 static Card* held_card = NULL;
 static Vector2 held_card_offset = {0};
+
+static Card* picked_card = NULL;
+static Object* picked_object = NULL;
 
 static Deck main_deck;
 
@@ -33,19 +39,73 @@ void CardManagerUpdate(float ft)
     {
         held_card = MousePickCard(mpos);
 
-        if (held_card)
+		if (held_card)
         {
-            held_card_offset = Vector2Subtract(held_card->_position, mpos);
-
 			Card* temp = MoveCardToTop(held_card);
 			if (temp)
 			{
 				held_card = temp;
+				held_card_offset = Vector2Subtract(held_card->_position, mpos);
 			}
         }
+		else if (picked_object && picked_object->type == ObjectTypeReserve)
+		{
+			held_card = ObjectReservePop(picked_object);
+			if (!held_card)
+			{
+				TraceLog(LOG_WARNING, "ObjectTypeReserve is picked on MouseLeft, but ObjectReservePop failed!");
+			}
+			else
+			{
+				Card* temp = MoveCardToTop(held_card);
+				if (temp)
+				{
+					held_card = temp;
+					held_card_offset = Vector2Subtract(held_card->_position, mpos);
+				}
+			}
+		}
     }
     else if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
     {
+		// TODO: doesn't work since cards move when the cards list is being updated, so pointers get invalidated.
+		// Need to move away from using pointers to an array that changes. Maybe use a "card handle" type which
+		// is just the ID, and then lookup the ID before each operation?
+		if (held_card && picked_card && !picked_card->_faceUp)
+		{
+			Object* reserve = ObjectReserveCreate(picked_card->_position);
+			Deck* deck = &(reserve->data.reserve.deck);
+
+			ReturnCardTo(deck, *picked_card, DeckTop);
+			ReturnCardTo(deck, *held_card, DeckTop);
+
+			DeleteCard(held_card);
+			DeleteCard(picked_card);
+		}
+
+		// create discard
+		else if (held_card && picked_card && picked_card->_faceUp)
+		{
+//			Object* reserve = ObjectReserveCreate(picked_card->_position);
+//			Deck* deck = &(reserve->data.reserve.deck);
+//
+//			ReturnCardTo(deck, *picked_card, DeckTop);
+//			DeleteCard(picked_card);
+//
+//			ReturnCardTo(deck, *held_card, DeckTop);
+//			DeleteCard(held_card);
+		}
+
+		// add card to reserve
+		else if (held_card && picked_object && !ObjectReserveFull(picked_object))
+		{
+			Object* reserve = picked_object;
+			Deck* deck = &(reserve->data.reserve.deck);
+
+			ReturnCardTo(deck, *held_card, DeckTop);
+			DeleteCard(held_card);
+		}
+
         held_card = NULL;
     }
 
@@ -69,6 +129,9 @@ void CardManagerUpdate(float ft)
     {
         held_card->_position = Vector2Add(mpos, held_card_offset);
     }
+
+	picked_card = MousePickCardExcluding(mpos, held_card);
+	picked_object = MousePickObject(mpos);
 
     // DEBUG
 	if (DebugSpawnCard())
@@ -139,7 +202,18 @@ void CardManagerDrawAllCards(void)
     {
         Card* card = cards + i;
 		float alpha = card->_locked ? 0.6f : 1.0f;
-        CardDraw(card, alpha);
+		if (held_card == card)
+		{
+			CardDrawShadowed(card, alpha);
+		}
+		else if (picked_card == card)
+		{
+			CardDrawHighlight(card, alpha, SKYBLUE);
+		}
+		else
+		{
+        	CardDraw(card, alpha);
+		}
 
 		if (card->_animationState != CardStateDefault)
 		{

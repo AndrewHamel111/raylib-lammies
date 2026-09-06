@@ -14,6 +14,8 @@
 static bool showDebugMenu;
 static bool showDrawTests;
 static bool drawDeckTest;
+static bool drawObjectHitboxes;
+static bool drawCardsSmall;
 static bool useVSync;
 
 // This style of bool (disposed after use) is an annoying enough pattern (static bool, bool function, prototype in
@@ -25,7 +27,6 @@ static bool clearCards;
 static bool reinitDeck;
 
 // NOT RECOMMENDED: values here are not static so they can be extern'd from gameplay code. AVOID IF POSSIBLE
-bool debugDrawCardsSmall;
 
 // Define debug.h functions here
 
@@ -37,6 +38,16 @@ bool DebugExampleBool(void)
 bool DebugShowDeckDrawTest(void)
 {
 	return drawDeckTest;
+}
+
+bool DebugDrawObjectHitboxes(void)
+{
+	return drawObjectHitboxes;
+}
+
+bool DebugDrawCardsSmall(void)
+{
+	return drawCardsSmall;
 }
 
 bool DebugSpawnCard(void)
@@ -168,6 +179,7 @@ void DebugMenuDraw(void)
 	X = X_start + 10;
 	Y = Y_start + 10;
 
+	GuiCheckBox(NextCheckboxRec(), "Draw Object Hitboxes", &drawObjectHitboxes);
 	GuiCheckBox(NextCheckboxRec(), "Draw Tests", &showDrawTests);
 	if (showDrawTests)
 	{
@@ -209,7 +221,7 @@ void DebugMenuDraw(void)
             SetTargetFPS(TARGET_FPS);
 		}
 	}
-	if (GuiCheckBox(NextCheckboxRec(), "Use Small Cards", &debugDrawCardsSmall))
+	if (GuiCheckBox(NextCheckboxRec(), "Use Small Cards", &drawCardsSmall))
 	{
 
 	}

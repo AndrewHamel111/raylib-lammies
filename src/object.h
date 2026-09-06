@@ -13,6 +13,7 @@ typedef enum ObjectType
 typedef struct Object
 {
 	Vector2 _position;
+	int id;
 
 	ObjectType type;
 	union
@@ -31,3 +32,8 @@ typedef struct Object
 //		} packet;
 	} data;
 } Object;
+
+void ObjectDraw(const Object* object);
+Rectangle ObjectRect(const Object* object);
+
+Object* ObjectReserveCreate(Vector2 position);

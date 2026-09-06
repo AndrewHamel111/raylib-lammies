@@ -13,3 +13,4 @@ Card* MoveCardToTop(Card* card);
 Card* MoveCardAtToTop(int index);
 
 Card* MousePickCard(Vector2 mpos);
+Card* MousePickCardExcluding(Vector2 mpos, Card* excluded);

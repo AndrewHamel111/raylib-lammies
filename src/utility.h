@@ -1,12 +1,13 @@
 #pragma once
 
 #include <math.h>
+#include "raylib.h"
 
 #define V(x,y) (CLITERAL(Vector2){x, y})
 #define R(x,y,w,h) (CLITERAL(Rectangle){x, y, w, h})
 #define R_SQ(x,y,w) (CLITERAL(Rectangle){x, y, w, w})
 
-#define CLAMPf(a,b,x) ((x < a) ? a : (x > b) ? b : x)
+#define CLAMPf(x,a,b) ((x < a) ? a : (x > b) ? b : x)
 #define CLAMPfN(x) (CLAMPf(0, 1, x))
 #define LERPf(a,b,t) ((a * (1 - t)) + (b * t))
 #define LERPfCLAMPED(a,b,t) ( LERPf(a,b,CLAMPfN(0,1,t)) )

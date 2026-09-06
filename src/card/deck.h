@@ -27,4 +27,5 @@ void ReturnCardTo(Deck* deck, Card card, DeckLocation where);
 void Shuffle(Deck* deck);
 
 int GetDeckCount(const Deck* deck);
+bool DeckIsFull(const Deck* deck);
 
