@@ -4,6 +4,7 @@
 #include "constants.h"
 #include "external/easings.h"
 #include "debug.h"
+#include "raymath.h"
 
 static void CardDrawInternal(const Card* card, float alpha, Color highlight, bool shadowed)
 {
@@ -77,6 +78,28 @@ void CardDrawHighlight(const Card* card, float alpha, Color highlight)
 void CardDrawShadowed(const Card* card, float alpha)
 {
 	CardDrawInternal(card, alpha, BLANK, true);
+}
+
+void CardDrawCustom(Vector2 position, Rank rank, Suit suit, float rotation, float alpha, Color highlight)
+{
+	bool small = DebugDrawCardsSmall();
+	Vector2 sz = small ? CARD_SIZE_SMALL : CARD_SIZE;
+	Vector2 origin = Vector2Scale(sz, 0.5f);
+	Rectangle dest = R(position.x + origin.x, position.y + origin.y, sz.x, sz.y);
+
+	Rectangle highlightDest = dest;
+	highlightDest.x -= CARD_HIGHLIGHT_EXTENT;
+	highlightDest.y -= CARD_HIGHLIGHT_EXTENT;
+	highlightDest.width += 2* CARD_HIGHLIGHT_EXTENT;
+	highlightDest.height += 2* CARD_HIGHLIGHT_EXTENT;
+
+	if (!ColorIsEqual(highlight, BLANK))
+	{
+		DrawRectangleRounded(highlightDest, 0.1f, 6, highlight);
+	}
+	Texture2D tex = GetCardValue(suit, rank, small);
+	Rectangle src = small ? GetCardSourceSmall() : GetCardSourceLarge();
+	DrawTexturePro(tex, src, dest, origin, rotation, WHITE);
 }
 
 Vector2 CardGetSize(const Card* card)

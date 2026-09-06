@@ -11,6 +11,7 @@
 #include "object.h"
 #include "object/management.h"
 #include "object/reserve.h"
+#include "object/discard.h"
 
 static Card* held_card = NULL;
 static Vector2 held_card_offset = {0};
@@ -65,6 +66,23 @@ void CardManagerUpdate(float ft)
 				}
 			}
 		}
+		else if (picked_object && picked_object->type == ObjectTypeDiscard)
+		{
+			held_card = ObjectDiscardPop(picked_object);
+			if (!held_card)
+			{
+				TraceLog(LOG_WARNING, "ObjectTypeDiscard is picked on MouseLeft, but ObjectDiscardPop failed!");
+			}
+			else
+			{
+				Card* temp = MoveCardToTop(held_card);
+				if (temp)
+				{
+					held_card = temp;
+					held_card_offset = Vector2Subtract(held_card->_position, mpos);
+				}
+			}
+		}
     }
     else if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
     {
@@ -86,14 +104,14 @@ void CardManagerUpdate(float ft)
 		// create discard
 		else if (held_card && picked_card && picked_card->_faceUp)
 		{
-//			Object* reserve = ObjectReserveCreate(picked_card->_position);
-//			Deck* deck = &(reserve->data.reserve.deck);
-//
-//			ReturnCardTo(deck, *picked_card, DeckTop);
-//			DeleteCard(picked_card);
-//
-//			ReturnCardTo(deck, *held_card, DeckTop);
-//			DeleteCard(held_card);
+			Object* reserve = ObjectDiscardCreate(picked_card->_position);
+			Deck* deck = &(reserve->data.discard.deck);
+
+			ReturnCardTo(deck, *picked_card, DeckTop);
+			ReturnCardTo(deck, *held_card, DeckTop);
+
+			DeleteCard(held_card);
+			DeleteCard(picked_card);
 		}
 
 		// add card to reserve
@@ -101,6 +119,16 @@ void CardManagerUpdate(float ft)
 		{
 			Object* reserve = picked_object;
 			Deck* deck = &(reserve->data.reserve.deck);
+
+			ReturnCardTo(deck, *held_card, DeckTop);
+			DeleteCard(held_card);
+		}
+
+		// add card to discard
+		else if (held_card && picked_object && !ObjectDiscardFull(picked_object))
+		{
+			Object* discard = picked_object;
+			Deck* deck = &(discard->data.discard.deck);
 
 			ReturnCardTo(deck, *held_card, DeckTop);
 			DeleteCard(held_card);

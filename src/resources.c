@@ -300,6 +300,5 @@ Rectangle GetCardSourceLarge(void)
 
 Texture2D GetCardValue(Suit suit, Rank rank, bool small)
 {
-	Texture2D result;
-	return result;
+	return small ? tex_card_small[suit][rank] : tex_card_large[suit][rank];
 }

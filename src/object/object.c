@@ -2,6 +2,7 @@
 #include "reserve.h"
 #include "utility.h"
 #include "debug.h"
+#include "discard.h"
 
 void ObjectDraw(const Object* object)
 {
@@ -9,8 +10,13 @@ void ObjectDraw(const Object* object)
 	{
 		case ObjectTypeReserve:
 			ObjectReserveDraw(object);
-			break;
+			return;
+		case ObjectTypeDiscard:
+			ObjectDiscardDraw(object);
+			return;
 	}
+
+	TraceLog(LOG_WARNING, "ObjectDraw unhandled case for object->type %d", object->type);
 }
 
 Rectangle ObjectRect(const Object* object)
@@ -22,6 +28,12 @@ Rectangle ObjectRect(const Object* object)
 		{
 			Vector2 sz = DebugDrawCardsSmall() ? CARD_SIZE_SMALL : CARD_SIZE;
 			float yOff = (float)(ObjectReserveStackHeight(object) - 1) * RESERVE_STACK_OFFSET;
+			return R(object->_position.x, object->_position.y - yOff, sz.x, sz.y + yOff);
+		}
+		case ObjectTypeDiscard:
+		{
+			Vector2 sz = DebugDrawCardsSmall() ? CARD_SIZE_SMALL : CARD_SIZE;
+			float yOff = (float)(ObjectDiscardStackHeight(object) - 1) * DISCARD_STACK_OFFSET;
 			return R(object->_position.x, object->_position.y - yOff, sz.x, sz.y + yOff);
 		}
 	}

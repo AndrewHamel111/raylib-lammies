@@ -54,6 +54,8 @@ typedef struct Card
 void CardDraw(const Card* card, float alpha);
 void CardDrawHighlight(const Card* card, float alpha, Color highlight);
 void CardDrawShadowed(const Card* card, float alpha);
+void CardDrawCustom(Vector2 position, Rank rank, Suit suit, float rotation, float alpha, Color highlight);
+
 Vector2 CardGetSize(const Card* card);
 Rectangle CardGetRect(const Card* card);
 

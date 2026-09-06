@@ -24,7 +24,13 @@ void ObjectReserveDraw(const Object* object)
 
 void ObjectReserveDrawHighlight(const Object* object, Color highlight)
 {
-	// TODO: object hitbox does not consider stack height!
+	if (object->type != ObjectTypeReserve)
+	{
+		TraceLog(LOG_ERROR, "ObjectReserveDrawHighlight called on Object of non-Reserve type!");
+		return;
+	}
+
+	// TODO: implement highlight
 	int stackHeight = 1;
 	float offset = RESERVE_STACK_OFFSET;
 
@@ -48,7 +54,7 @@ bool ObjectReserveFull(const Object* object)
 {
 	if (object->type != ObjectTypeReserve)
 	{
-		TraceLog(LOG_ERROR, "ObjectReserveFull called on Object of non-Reserve type!");
+		TraceLog(LOG_TRACE, "ObjectReserveFull called on Object of non-Reserve type!");
 		return true;
 	}
 
@@ -57,11 +63,23 @@ bool ObjectReserveFull(const Object* object)
 
 int ObjectReserveStackHeight(const Object* object)
 {
+	if (object->type != ObjectTypeReserve)
+	{
+		TraceLog(LOG_ERROR, "ObjectReserveStackHeight called on Object of non-Reserve type!");
+		return -1;
+	}
+
 	return CLAMPf(object->data.reserve.deck.count, 1, 4);
 }
 
 Card* ObjectReservePop(Object* object)
 {
+	if (object->type != ObjectTypeReserve)
+	{
+		TraceLog(LOG_ERROR, "ObjectReservePop called on Object of non-Reserve type!");
+		return NULL;
+	}
+
 	Deck* deck = &(object->data.reserve.deck);
 
 	Card card = DrawNewCard(deck);

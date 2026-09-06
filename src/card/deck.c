@@ -16,7 +16,7 @@ Card DrawNewCard(Deck* deck)
 {
 	uint value = DrawNewCardValue(deck);
 
-	Card result;
+	Card result = (Card){0};
 	result.suit = value / 13;
 	result.rank = value % 13;
 	return result;
@@ -122,7 +122,14 @@ int GetDeckCount(const Deck* deck)
 	return deck->count;
 }
 
+// TODO: Yes, this always returns a constant value, but at some point Decks may be configured to have a maximum size,
+// and when that is variable we want to use that value here!
+int GetDeckMax(const Deck* deck)
+{
+	return DECK_MAX;
+}
+
 bool DeckIsFull(const Deck* deck)
 {
-	return deck->count == DECK_MAX;
+	return deck->count == GetDeckMax(deck);
 }

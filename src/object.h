@@ -6,7 +6,7 @@
 typedef enum ObjectType
 {
 	ObjectTypeReserve,
-//	ObjectTypeDiscard,
+	ObjectTypeDiscard,
 //	ObjectTypePacket
 } ObjectType;
 
@@ -22,10 +22,10 @@ typedef struct Object
 		{
 			Deck deck;
 		} reserve;
-//		struct
-//		{
-//
-//		} discard;
+		struct
+		{
+			Deck deck;
+		} discard;
 //		struct
 //		{
 //
@@ -37,3 +37,4 @@ void ObjectDraw(const Object* object);
 Rectangle ObjectRect(const Object* object);
 
 Object* ObjectReserveCreate(Vector2 position);
+Object* ObjectDiscardCreate(Vector2 position);
