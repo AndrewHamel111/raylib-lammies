@@ -14,6 +14,7 @@ typedef enum CursorState
 typedef enum CursorHeight
 {
 	CursorHeightTable,
+	CursorHeightObject,
 	CursorHeightTop,
 } CursorHeight;
 

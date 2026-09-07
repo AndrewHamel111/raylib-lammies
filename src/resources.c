@@ -35,6 +35,7 @@ int music_data_count = 0;
 
 Font fnt_receipt;
 Font fnt_pop;
+Font fnt_mono;
 
 Music music_bgm;
 
@@ -125,6 +126,7 @@ static void LoadUIAssets(void)
 {
 	fnt_receipt = LoadFontInternal("resources/BMREA___.TTF");
 	fnt_pop = LoadFontInternal("resources/gomarice_rockin_record.ttf");
+	fnt_mono = LoadFontInternal("resources/monofonto.otf");
 
 	tex_cursor[0] = LoadTextureInternal("resources/textures/cursor/cursor_default.png");
 	tex_cursor[1] = LoadTextureInternal("resources/textures/cursor/cursor_pick.png");
@@ -228,6 +230,11 @@ Sound GetDiscardSFX(void)
 Sound GetDoorbellSFX(void)
 {
 	return GetRandomizedSFX(sfx_doorbell, SFX_DOORBELL_COUNT, &doorbell_last_index);
+}
+
+Font GetMonoFont(void)
+{
+	return fnt_mono;
 }
 
 Texture2D GetCardSmall(const Card* card)

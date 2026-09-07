@@ -31,8 +31,6 @@ void GameInit(void)
 void GameLoop(void)
 {
     // Update //
-	Vector2 mpos = GetMousePosition();
-
 	if (IsKeyPressed(KEY_F1))
 	{
 		GameCleanup();
@@ -55,10 +53,9 @@ void GameLoop(void)
 			CursorDraw();
 		}
 
-		// TODO: objects do not have "height ordering" like cards, need to fix that
-		// TODO: CursorDraw needs more heights: "Table" becomes "HeldObject", which should be drawn above all objects EXCEPT held object
 		// TODO: some feedback that an object is hovering too close to another object would be nice, it's hard to tell where the valid placement area is.
 		// TODO: perhaps a visualization of all object hitboxes when moving objects, so it's clear where you're not allowed to place an object. In that case, should we be inflate the OTHER object's hitboxes instead
+		// TODO: god I can't wait for cards to be objects this sh is so annoying
 		ObjectsDraw();
         CardManagerDrawAllCards();
 
@@ -116,7 +113,21 @@ void GameLoop(void)
 		{
 			CursorDraw();
 		}
-        DrawFPS(10, 10);
+
+		if (DebugShowObjectStack())
+		{
+			float fontSize = 32;
+			int spacer = 4;
+			int objectsCount;
+			Object* objects = ObjectsGet(&objectsCount);
+			DrawRectangleRec(R(0, 0, 320, (fontSize + spacer) * (objectsCount + 4)), Fade(BLACK, 0.75f));
+			for (int i = 0; i < objectsCount + 4; i++)
+			{
+				Color color = i < objectsCount ? WHITE : GRAY;
+				DrawTextEx(GetMonoFont(), TextFormat("[%d]: #%d", i, objects[i].id), V(spacer, spacer + (i * (fontSize + spacer))), fontSize, 1.0f, color);
+			}
+		}
+//        DrawFPS(10, 10);
 	}
 	EndDrawing();
 }

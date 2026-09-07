@@ -4,7 +4,7 @@
 
 /// Returns a pointer to an available Object
 Object* ObjectConstruct(void);
-void ObjectFree(const Object* object);
+//void ObjectFree(const Object* object);
 
 Object* ObjectGet(int id);
 Object* ObjectsGet(int* count);
@@ -17,3 +17,11 @@ Object* MousePickObjectExcluding(Vector2 mpos, const Object* excluded);
 
 void ObjectSetHeld(const Object* object);
 void ObjectSetPicked(const Object* object);
+
+// List stuff
+void DeleteObject(Object* object);
+void DeleteObjectAt(int index);
+void DeleteAllObjects(void);
+
+Object* MoveObjectToTop(Object* object);
+Object* MoveObjectAtToTop(int index);

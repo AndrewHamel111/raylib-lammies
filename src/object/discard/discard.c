@@ -131,7 +131,7 @@ Card* ObjectDiscardPop(Object* object)
 	// Destroy discard if the last card is popped
 	if (GetDeckCount(deck) == 0)
 	{
-		object->id = 0;
+		DeleteObject(object);
 	}
 
 	return AddCard(card);

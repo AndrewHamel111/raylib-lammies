@@ -8,3 +8,5 @@ Music GetBGM(void);
 Sound GetSlideSFX(void);
 Sound GetDiscardSFX(void);
 Sound GetDoorbellSFX(void);
+
+Font GetMonoFont(void);

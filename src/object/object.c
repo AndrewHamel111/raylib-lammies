@@ -4,6 +4,7 @@
 #include "utility.h"
 #include "debug.h"
 #include "discard.h"
+#include "management.h"
 
 void ObjectDraw(const Object* object)
 {
@@ -101,7 +102,7 @@ bool ObjectCombine(Object* source, Object* destination)
 	{
 		memmove(destDeck->arr + destDeck->count, sourceDeck->arr, sourceDeckCount * sizeof(uint));
 		destDeck->count += sourceDeckCount;
-		source->id = 0;
+		DeleteObject(source);
 		return true;
 	}
 	else if (DeckIsFull(destDeck))

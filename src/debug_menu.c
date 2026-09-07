@@ -16,6 +16,7 @@ static bool showDrawTests;
 static bool drawDeckTest;
 static bool drawObjectHitboxes;
 static bool drawCardsSmall;
+static bool showObjectStack;
 static bool useVSync;
 
 // This style of bool (disposed after use) is an annoying enough pattern (static bool, bool function, prototype in
@@ -25,6 +26,7 @@ static bool deckTest;
 static bool shuffleDeck;
 static bool clearCards;
 static bool reinitDeck;
+static bool cleanupObjects;
 
 // NOT RECOMMENDED: values here are not static so they can be extern'd from gameplay code. AVOID IF POSSIBLE
 
@@ -48,6 +50,11 @@ bool DebugDrawObjectHitboxes(void)
 bool DebugDrawCardsSmall(void)
 {
 	return drawCardsSmall;
+}
+
+bool DebugShowObjectStack(void)
+{
+	return showObjectStack;
 }
 
 bool DebugSpawnCard(void)
@@ -99,6 +106,17 @@ bool DebugReinitDeck(void)
 	if (reinitDeck)
 	{
 		reinitDeck = false;
+		return true;
+	}
+
+	return false;
+}
+
+bool DebugCleanupObjects(void)
+{
+	if (cleanupObjects)
+	{
+		cleanupObjects = false;
 		return true;
 	}
 
@@ -180,6 +198,7 @@ void DebugMenuDraw(void)
 	Y = Y_start + 10;
 
 	GuiCheckBox(NextCheckboxRec(), "Draw Object Hitboxes", &drawObjectHitboxes);
+	GuiCheckBox(NextCheckboxRec(), "Show Object Stack", &showObjectStack);
 	GuiCheckBox(NextCheckboxRec(), "Draw Tests", &showDrawTests);
 	if (showDrawTests)
 	{
@@ -206,6 +225,11 @@ void DebugMenuDraw(void)
 	{
 		reinitDeck = true;
 	}
+	if(GuiButton(NextHalfButton(), "Cleanup Objects"))
+	{
+		cleanupObjects = true;
+	}
+	NextHalfButton();
 
 	GuiLabel(NextLabel(), "-== Settings ==-");
 	if (GuiCheckBox(NextCheckboxRec(), "Use VSync", &useVSync))

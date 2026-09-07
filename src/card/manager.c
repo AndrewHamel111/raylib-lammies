@@ -41,7 +41,7 @@ void CardManagerUpdate(float ft)
 {
     Vector2 mpos = GetMousePosition();
 
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+	if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
     {
         held_card = MousePickCard(mpos);
 
@@ -56,6 +56,9 @@ void CardManagerUpdate(float ft)
         }
 		else if (picked_object && picked_object->type == ObjectTypeReserve)
 		{
+			// TODO: ObjectReservePop can destroy an object, when Cards are Objects this will be a problem!
+			// Will need to replace object pointers with IDs before making Cards Objects
+			// TODO: picked_object will be invalid after this function is called in cases where the last card is removed!
 			held_card = ObjectReservePop(picked_object);
 			if (!held_card)
 			{
@@ -73,6 +76,9 @@ void CardManagerUpdate(float ft)
 		}
 		else if (picked_object && picked_object->type == ObjectTypeDiscard)
 		{
+			// TODO: ObjectDiscardPop can destroy an object, when Cards are Objects this will be a problem!
+			// Will need to replace object pointers with IDs before making Cards Objects
+			// TODO: picked_object will be invalid after this function is called in cases where the last card is removed!
 			held_card = ObjectDiscardPop(picked_object);
 			if (!held_card)
 			{
@@ -89,7 +95,7 @@ void CardManagerUpdate(float ft)
 			}
 		}
     }
-    else if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
+	else if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
     {
 		// TODO: doesn't work since cards move when the cards list is being updated, so pointers get invalidated.
 		// Need to move away from using pointers to an array that changes. Maybe use a "card handle" type which
@@ -142,7 +148,7 @@ void CardManagerUpdate(float ft)
         held_card = NULL;
     }
 
-	if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
+	else if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
 	{
 		if (held_card)
 		{
@@ -168,11 +174,13 @@ void CardManagerUpdate(float ft)
 			offset.x = picked_object->_position.x + objectRec.width - OBJECT_HOLD_OFFSET;
 			held_object_offset = Vector2Subtract(picked_object->_position, offset);
 			held_object_last_position = picked_object->_position;
-			held_object = picked_object;
+
+			held_object = MoveObjectToTop(picked_object);
+
 			ObjectSetHeld(held_object);
 		}
 	}
-	else // IsMouseButtonReleased(MOUSE_BUTTON_RIGHT)
+	else if (IsMouseButtonReleased(MOUSE_BUTTON_RIGHT))
 	{
 		if (held_object)
 		{
@@ -188,7 +196,7 @@ void CardManagerUpdate(float ft)
 			{
 				int objectsCount;
 				Object* objects = ObjectsGet(&objectsCount);
-				for (int i = 0; i < MAX_OBJECTS && check; i++)
+				for (int i = 0; i < objectsCount && check; i++)
 				{
 					if (!objects[i].id || objects + i == held_object) continue;
 
@@ -203,6 +211,11 @@ void CardManagerUpdate(float ft)
 				if (!ObjectCombine(held_object, combineTarget))
 				{
 					held_object->_position = held_object_last_position;
+				}
+				else
+				{
+					// this object is deleted
+					held_object = NULL;
 				}
 			}
 			else if (!check)
@@ -237,7 +250,12 @@ void CardManagerUpdate(float ft)
 		CursorSetState(CursorHold);
 		CursorSetHeight(CursorHeightTop);
 	}
-	else if (held_object || IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
+	else if (held_object)
+	{
+		CursorSetState(CursorPalm);
+		CursorSetHeight(CursorHeightObject);
+	}
+	else if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
 	{
 		CursorSetState(CursorPalm);
 		CursorSetHeight(CursorHeightTable);
@@ -310,6 +328,12 @@ void CardManagerUpdate(float ft)
 	{
 		InitDeck(&main_deck);
 		DeleteAllCards();
+	}
+
+	if (DebugCleanupObjects())
+	{
+		DeleteAllObjects();
+		held_object = NULL;
 	}
 }
 
