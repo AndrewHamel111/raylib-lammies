@@ -24,8 +24,6 @@ static Object* held_object = NULL;
 static Vector2 held_object_offset = V(0,0);
 static Vector2 held_object_last_position = V(0,0);
 
-static Deck main_deck;
-
 const Card* GetHeldCard(void)
 {
     return held_card;
@@ -34,7 +32,6 @@ const Card* GetHeldCard(void)
 void CardManagerInit(void)
 {
     held_card = NULL;
-	InitDeck(&main_deck);
 }
 
 void CardManagerUpdate(float ft)
@@ -56,9 +53,6 @@ void CardManagerUpdate(float ft)
         }
 		else if (picked_object && picked_object->type == ObjectTypeReserve)
 		{
-			// TODO: ObjectReservePop can destroy an object, when Cards are Objects this will be a problem!
-			// Will need to replace object pointers with IDs before making Cards Objects
-			// TODO: picked_object will be invalid after this function is called in cases where the last card is removed!
 			held_card = ObjectReservePop(picked_object);
 			if (!held_card)
 			{
@@ -76,9 +70,6 @@ void CardManagerUpdate(float ft)
 		}
 		else if (picked_object && picked_object->type == ObjectTypeDiscard)
 		{
-			// TODO: ObjectDiscardPop can destroy an object, when Cards are Objects this will be a problem!
-			// Will need to replace object pointers with IDs before making Cards Objects
-			// TODO: picked_object will be invalid after this function is called in cases where the last card is removed!
 			held_card = ObjectDiscardPop(picked_object);
 			if (!held_card)
 			{
@@ -97,9 +88,6 @@ void CardManagerUpdate(float ft)
     }
 	else if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
     {
-		// TODO: doesn't work since cards move when the cards list is being updated, so pointers get invalidated.
-		// Need to move away from using pointers to an array that changes. Maybe use a "card handle" type which
-		// is just the ID, and then lookup the ID before each operation?
 		if (held_card && picked_card && !picked_card->_faceUp)
 		{
 			Object* reserve = ObjectReserveCreate(picked_card->_position);
@@ -194,7 +182,6 @@ void CardManagerUpdate(float ft)
 			}
 			else
 			{
-				// TODO: switch to ordered list if there's any problems
 				int objectsCount;
 				Object** objects = ObjectsGetOrdered(&objectsCount);
 				for (int i = 0; i < objectsCount && check; i++)
@@ -273,67 +260,24 @@ void CardManagerUpdate(float ft)
 	}
 
     // DEBUG
-	if (DebugSpawnCard())
+	if (DebugSpawnFactoryDeck())
     {
-		if (GetDeckCount(&main_deck) > 0)
-		{
-			Card* newCard = AddCardValue(DrawNewCardValue(&main_deck));
-
-			Vector2 cardSize = CardGetSize(newCard);
-			Vector2 startPosition = V((GetScreenWidth() * 0.5f), 32 - cardSize.y);
-			Vector2 cardDest = startPosition;
-			cardDest.y = 64 + (cardSize.y / 2);
-			newCard->_position = startPosition;
-
-			/* TODO: Tweening card values directly will not work, as cards get moved around and thus the pointer to their
-			 * values will change. Better to use a dedicated "Card Tweener" and capture a Card "ID", which could not change. */
-			SetTweenStyle(TweenStyleEaseOut);
-			SetTweenV2(&newCard->_position, cardDest, 0.5f);
-			LockCardFor(newCard, 0.5f);
-		}
-		else
-		{
-			TraceLog(LOG_WARNING, "No cards left in deck!");
-		}
+		Object* reserve = ObjectReserveCreate(V(128, 128));
+		Deck* deck = &reserve->data.reserve.deck;
+		InitDeck(deck);
     }
-
-	if (DebugDeckTest())
+	else if (DebugSpawnShuffledDeck())
 	{
-		TraceLog(LOG_INFO, "");
-		TraceLog(LOG_INFO, "");
-		TraceLog(LOG_INFO, "");
-
-		int deckCount = GetDeckCount(&main_deck);
-		for (int i = 0; i < deckCount; i++)
-		{
-			Card card = DrawNewCard(&main_deck);
-			TraceLog(LOG_INFO, "----======----");
-			TraceLog(LOG_INFO, "%s of %s", RankName(card.rank), SuitName(card.suit));
-		}
-	}
-	else if (DebugShuffleDeck())
-	{
-		Shuffle(&main_deck);
+		Object* reserve = ObjectReserveCreate(V(128, 128));
+		Deck* deck = &reserve->data.reserve.deck;
+		InitDeck(deck);
+		Shuffle(deck);
 	}
 	else if (DebugClearCards())
 	{
-		int count;
-		Card* cards = GetCards(&count);
-		for (int i = count - 1; i >= 0; i--)
-		{
-			Card* card = cards + i;
-			DeleteCard(card);
-			//ObjectFree(card); // TODO: use this once Cards are objects, as Delete will become Remove and thus will not delete the inner object!
-			ReturnCardTo(&main_deck, cards[i], DeckBottom);
-		}
-	}
-	else if (DebugReinitDeck())
-	{
-		InitDeck(&main_deck);
 		DeleteAllCards();
 	}
-
-	if (DebugCleanupObjects())
+	else if (DebugCleanupObjects())
 	{
 		DeleteAllObjects();
 		held_object = NULL;

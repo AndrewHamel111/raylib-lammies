@@ -5,8 +5,11 @@
 
 #include "utility.h"
 #include "constants.h"
+#include "resources.h"
 
-#define MENU_WIDTH 200
+//#define MENU_WIDTH 200
+static int MENU_WIDTH = 200;
+static int PADDING = 10;
 
 // Add extern functions here for important gameplay logic you want to trigger! Alternatively, add a button which sets a
 // bool here, and poll that bool from the appropriate place in the game's logic
@@ -21,11 +24,9 @@ static bool useVSync;
 
 // This style of bool (disposed after use) is an annoying enough pattern (static bool, bool function, prototype in
 // debug.h) it may be possible to have a macro which defines all 3 parts.
-static bool spawnCard;
-static bool deckTest;
-static bool shuffleDeck;
+static bool spawnFactoryDeck;
+static bool spawnShuffledDeck;
 static bool clearCards;
-static bool reinitDeck;
 static bool cleanupObjects;
 
 // NOT RECOMMENDED: values here are not static so they can be extern'd from gameplay code. AVOID IF POSSIBLE
@@ -57,33 +58,22 @@ bool DebugShowObjectStack(void)
 	return showObjectStack;
 }
 
-bool DebugSpawnCard(void)
+bool DebugSpawnFactoryDeck(void)
 {
-    if (spawnCard)
+    if (spawnFactoryDeck)
     {
-        spawnCard = false;
+		spawnFactoryDeck = false;
         return true;
     }
 
     return false;
 }
 
-bool DebugDeckTest(void)
+bool DebugSpawnShuffledDeck(void)
 {
-	if (deckTest)
+	if (spawnShuffledDeck)
 	{
-		deckTest = false;
-		return true;
-	}
-
-	return false;
-}
-
-bool DebugShuffleDeck(void)
-{
-	if (shuffleDeck)
-	{
-		shuffleDeck = false;
+		spawnShuffledDeck = false;
 		return true;
 	}
 
@@ -95,17 +85,6 @@ bool DebugClearCards(void)
 	if (clearCards)
 	{
 		clearCards = false;
-		return true;
-	}
-
-	return false;
-}
-
-bool DebugReinitDeck(void)
-{
-	if (reinitDeck)
-	{
-		reinitDeck = false;
 		return true;
 	}
 
@@ -135,25 +114,25 @@ static bool right_half = false;
 
 static Rectangle NextCheckboxRec(void)
 {
-	Rectangle r = R(X, Y, 20, 20);
+	Rectangle r = R(X, Y, (2 * PADDING), (2 * PADDING));
 
-	Y += 20 + 10;
+	Y += (2 * PADDING) + (PADDING);
 
 	return r;
 }
 
 static Rectangle NextHalfButton(void)
 {
-	Rectangle r = R(X, Y, (MENU_WIDTH * 0.5f) - 10, 20);
+	Rectangle r = R(X, Y, (MENU_WIDTH * 0.5f) - (PADDING), (2 * PADDING));
 
 	if (right_half)
 	{
-		X = X_start + 10;
-		Y += 20 + 10;
+		X = X_start + (PADDING);
+		Y += (2 * PADDING) + (PADDING);
 	}
 	else
 	{
-		X += (MENU_WIDTH * 0.5f) + 10;
+		X += (MENU_WIDTH * 0.5f) + (PADDING);
 	}
 
 	right_half = !right_half;
@@ -163,18 +142,18 @@ static Rectangle NextHalfButton(void)
 
 static Rectangle NextButton(void)
 {
-	Rectangle r = R(X, Y, MENU_WIDTH, 20);
+	Rectangle r = R(X, Y, MENU_WIDTH, (2 * PADDING));
 
-	Y += 20 + 10;
+	Y += (2 * PADDING) + (PADDING);
 
 	return r;
 }
 
 static Rectangle NextLabel(void)
 {
-	Rectangle r = R(X, Y, MENU_WIDTH, 10);
+	Rectangle r = R(X, Y, MENU_WIDTH, (PADDING));
 
-	Y += 10 + 10;
+	Y += (PADDING) + (PADDING);
 
 	return r;
 }
@@ -194,42 +173,30 @@ void DebugMenuDraw(void)
 		return;
 	}
 
-	X = X_start + 10;
-	Y = Y_start + 10;
+	X = X_start + (PADDING);
+	Y = Y_start + (PADDING);
 
+	GuiLabel(NextLabel(), "-== Debug Vis ==-");
 	GuiCheckBox(NextCheckboxRec(), "Draw Object Hitboxes", &drawObjectHitboxes);
 	GuiCheckBox(NextCheckboxRec(), "Show Object Stack", &showObjectStack);
-	GuiCheckBox(NextCheckboxRec(), "Draw Tests", &showDrawTests);
-	if (showDrawTests)
-	{
-		GuiCheckBox(NextCheckboxRec(), "Draw Deck Test", &drawDeckTest);
-	}
-	GuiLabel(NextLabel(), "-== Test Commands ==-");
-    if(GuiButton(NextHalfButton(), "Spawn Card"))
+	GuiLabel(NextLabel(), "-== Spawn Objects ==-");
+    if(GuiButton(NextHalfButton(), "Fresh Deck"))
     {
-        spawnCard = true;
+		spawnFactoryDeck = true;
     }
-	if(GuiButton(NextHalfButton(), "Deck Test"))
+	if(GuiButton(NextHalfButton(), "Shuffled Deck"))
 	{
-		deckTest = true;
+		spawnShuffledDeck = true;
 	}
-	if(GuiButton(NextHalfButton(), "Shuffle Deck"))
-	{
-		shuffleDeck = true;
-	}
-	if(GuiButton(NextHalfButton(), "Clear Cards"))
+	GuiLabel(NextLabel(), "-== Object Management ==-");
+	if(GuiButton(NextHalfButton(), "Cleanup Cards"))
 	{
 		clearCards = true;
-	}
-	if(GuiButton(NextButton(), "Reinit Deck"))
-	{
-		reinitDeck = true;
 	}
 	if(GuiButton(NextHalfButton(), "Cleanup Objects"))
 	{
 		cleanupObjects = true;
 	}
-	NextHalfButton();
 
 	GuiLabel(NextLabel(), "-== Settings ==-");
 	if (GuiCheckBox(NextCheckboxRec(), "Use VSync", &useVSync))
@@ -249,4 +216,23 @@ void DebugMenuDraw(void)
 	{
 
 	}
+}
+
+void DebugMenuSetScaling(int scale)
+{
+	if (scale <= 1)
+	{
+		GuiSetFont(GetFontDefault());
+		GuiSetStyle(DEFAULT, TEXT_SIZE, 10);
+		GuiSetStyle(DEFAULT, TEXT_SPACING, 1);
+		MENU_WIDTH = 200;
+		PADDING = 10;
+		return;
+	}
+
+	GuiSetFont(GetMonoFont());
+	GuiSetStyle(DEFAULT, TEXT_SIZE, 10 * scale);
+	GuiSetStyle(DEFAULT, TEXT_SPACING, 0.5f * scale);
+	MENU_WIDTH = 200 * (scale);
+	PADDING = 10 + (10 * (scale * 0.25f));
 }

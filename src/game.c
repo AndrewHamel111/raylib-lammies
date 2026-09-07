@@ -26,6 +26,7 @@ void GameInit(void)
 {
 	// game setup //
     CardManagerInit();
+	DebugMenuSetScaling(3);
 }
 
 void GameLoop(void)
@@ -58,55 +59,6 @@ void GameLoop(void)
 		// TODO: god I can't wait for cards to be objects this sh is so annoying
 		ObjectsDraw();
         CardManagerDrawAllCards();
-
-		if (DebugShowDeckDrawTest())
-		{
-			float offset = RESERVE_STACK_OFFSET;
-			Vector2 sz = CARD_SIZE;
-			Rectangle dest = R(256, 128, sz.x, sz.y);
-			DrawTexturePro(GetCardBackLarge(), GetCardSourceLarge(), dest, V(0,0), 0.0f, WHITE);
-			dest.y -= offset;
-			DrawTexturePro(GetCardBackLarge(), GetCardSourceLarge(), dest, V(0,0), 0.0f, WHITE);
-			dest.y -= offset;
-			DrawTexturePro(GetCardBackLarge(), GetCardSourceLarge(), dest, V(0,0), 0.0f, WHITE);
-			dest.y -= offset;
-			DrawTexturePro(GetCardBackLarge(), GetCardSourceLarge(), dest, V(0,0), 0.0f, WHITE);
-
-			dest.y += 300;
-			DrawTexturePro(GetCardBackLarge(), GetCardSourceLarge(), dest, V(0,0), 0.0f, WHITE);
-			dest.y -= offset;
-			DrawTexturePro(GetCardBackLarge(), GetCardSourceLarge(), dest, V(0,0), 0.0f, WHITE);
-			dest.y -= offset;
-			DrawTexturePro(GetCardBackLarge(), GetCardSourceLarge(), dest, V(0,0), 0.0f, WHITE);
-
-			dest.y += 300;
-			DrawTexturePro(GetCardBackLarge(), GetCardSourceLarge(), dest, V(0,0), 0.0f, WHITE);
-			dest.y -= offset;
-			DrawTexturePro(GetCardBackLarge(), GetCardSourceLarge(), dest, V(0,0), 0.0f, WHITE);
-
-			float soffset = RESERVE_STACK_OFFSET;
-			Vector2 szSm = CARD_SIZE_SMALL;
-			Rectangle sdest = R(512, 128, szSm.x, szSm.y);
-			DrawTexturePro(GetCardBackSmall(), GetCardSourceSmall(), sdest, V(0,0), 0.0f, WHITE);
-			sdest.y -= soffset;
-			DrawTexturePro(GetCardBackSmall(), GetCardSourceSmall(), sdest, V(0,0), 0.0f, WHITE);
-			sdest.y -= soffset;
-			DrawTexturePro(GetCardBackSmall(), GetCardSourceSmall(), sdest, V(0,0), 0.0f, WHITE);
-			sdest.y -= soffset;
-			DrawTexturePro(GetCardBackSmall(), GetCardSourceSmall(), sdest, V(0,0), 0.0f, WHITE);
-
-			sdest.y += 200;
-			DrawTexturePro(GetCardBackSmall(), GetCardSourceSmall(), sdest, V(0,0), 0.0f, WHITE);
-			sdest.y -= soffset;
-			DrawTexturePro(GetCardBackSmall(), GetCardSourceSmall(), sdest, V(0,0), 0.0f, WHITE);
-			sdest.y -= soffset;
-			DrawTexturePro(GetCardBackSmall(), GetCardSourceSmall(), sdest, V(0,0), 0.0f, WHITE);
-
-			sdest.y += 200;
-			DrawTexturePro(GetCardBackSmall(), GetCardSourceSmall(), sdest, V(0,0), 0.0f, WHITE);
-			sdest.y -= soffset;
-			DrawTexturePro(GetCardBackSmall(), GetCardSourceSmall(), sdest, V(0,0), 0.0f, WHITE);
-		}
 
         DebugMenuDraw();
 		if (CursorHeightGet() == CursorHeightTop)

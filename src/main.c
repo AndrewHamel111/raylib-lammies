@@ -3,6 +3,8 @@
 	
 #include <math.h>
 #include <string.h>
+#include <stdlib.h>
+#include <time.h>
 
 #include "constants.h"
 #include "game.h"
@@ -22,6 +24,7 @@ int main(void)
 {
 	InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE);
 	SetTargetFPS(60);
+	srand(time(0));
 
 	InitAudioDevice();
 

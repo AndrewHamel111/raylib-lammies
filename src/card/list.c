@@ -51,7 +51,7 @@ Card* CreateCard(Vector2 position, Suit suit, Rank rank)
 
 Card* AddCardValue(unsigned int value)
 {
-	return CreateCard(V(0,0), value % 13, value / 13);
+	return CreateCard(V(0,0), value / 13, value % 13);
 }
 
 static int GetCardIndex(Card* card)
