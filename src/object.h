@@ -35,8 +35,12 @@ typedef struct Object
 } Object;
 
 void ObjectDraw(const Object* object);
+void ObjectDrawHighlight(const Object* object, Color highlight);
 void ObjectDrawShadowed(const Object* object);
 Rectangle ObjectRect(const Object* object);
 
 Object* ObjectReserveCreate(Vector2 position);
 Object* ObjectDiscardCreate(Vector2 position);
+
+/// Returns true if the combine deletes the source object, false if the source object should be returned to it's last position
+bool ObjectCombine(Object* source, Object* destination);

@@ -44,6 +44,11 @@ static void ObjectReserveDrawInternal(const Object* object, bool shadowed, Color
 
 		DrawRectangleRounded(shadowDest, CARD_SHADOW_ROUNDNESS, CARD_SHADOW_SEGMENTS, Fade(BLACK, OBJECT_SHADOW_DARKNESS));
 	}
+	else if (!ColorIsEqual(highlight, BLANK))
+	{
+		Rectangle highlightRec = RectangleInflate(dest, CARD_HIGHLIGHT_EXTENT);
+		DrawRectangleRounded(highlightRec, CARD_SHADOW_ROUNDNESS, CARD_SHADOW_SEGMENTS, highlight);
+	}
 
 	stackHeight = ObjectReserveStackHeight(object);
 

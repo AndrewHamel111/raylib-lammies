@@ -55,6 +55,10 @@ void GameLoop(void)
 			CursorDraw();
 		}
 
+		// TODO: objects do not have "height ordering" like cards, need to fix that
+		// TODO: CursorDraw needs more heights: "Table" becomes "HeldObject", which should be drawn above all objects EXCEPT held object
+		// TODO: some feedback that an object is hovering too close to another object would be nice, it's hard to tell where the valid placement area is.
+		// TODO: perhaps a visualization of all object hitboxes when moving objects, so it's clear where you're not allowed to place an object. In that case, should we be inflate the OTHER object's hitboxes instead
 		ObjectsDraw();
         CardManagerDrawAllCards();
 

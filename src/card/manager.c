@@ -177,20 +177,35 @@ void CardManagerUpdate(float ft)
 		if (held_object)
 		{
 			Rectangle heldObjectRec = RectangleInflate(ObjectRect(held_object), OBJECT_PLACEMENT_INFLATE);
+			Object* combineTarget = NULL;
 			bool check = true;
 
-			int objectsCount;
-			Object* objects = ObjectsGet(&objectsCount);
-			for (int i = 0; i < MAX_OBJECTS && check; i++)
+			if (picked_object && picked_object->type == held_object->type)
 			{
-				if (!objects[i].id || objects + i == held_object) continue;
+				combineTarget = picked_object;
+			}
+			else
+			{
+				int objectsCount;
+				Object* objects = ObjectsGet(&objectsCount);
+				for (int i = 0; i < MAX_OBJECTS && check; i++)
+				{
+					if (!objects[i].id || objects + i == held_object) continue;
 
-				if (!CheckCollisionRecs(heldObjectRec, ObjectRect(objects + i))) continue;
+					if (!CheckCollisionRecs(heldObjectRec, ObjectRect(objects + i))) continue;
 
-				check = false;
+					check = false;
+				}
 			}
 
-			if (!check)
+			if (combineTarget)
+			{
+				if (!ObjectCombine(held_object, combineTarget))
+				{
+					held_object->_position = held_object_last_position;
+				}
+			}
+			else if (!check)
 			{
 				held_object->_position = held_object_last_position;
 			}
@@ -214,6 +229,8 @@ void CardManagerUpdate(float ft)
 
 	picked_card = MousePickCardExcluding(mpos, held_card);
 	picked_object = MousePickObjectExcluding(mpos, held_object);
+
+	ObjectSetPicked(picked_object);
 
 	if (held_card)
 	{

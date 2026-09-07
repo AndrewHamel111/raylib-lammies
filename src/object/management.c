@@ -5,6 +5,7 @@ Object objects[MAX_OBJECTS] = {0};
 static int next_id = 1;
 
 static const Object* held_object = NULL;
+static const Object* picked_object = NULL;
 
 Object* ObjectConstruct(void)
 {
@@ -72,6 +73,10 @@ void ObjectsDraw(void)
 		{
 			ObjectDrawShadowed(objects + i);
 		}
+		else if (picked_object == objects + i)
+		{
+			ObjectDrawHighlight(objects + i, OBJECT_DEFAULT_HIGHLIGHT);
+		}
 		else
 		{
 			ObjectDraw(objects + i);
@@ -109,4 +114,9 @@ Object* MousePickObjectExcluding(Vector2 mpos, const Object* excluded)
 void ObjectSetHeld(const Object* object)
 {
 	held_object = object;
+}
+
+void ObjectSetPicked(const Object* object)
+{
+	picked_object = object;
 }
