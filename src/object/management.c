@@ -4,6 +4,8 @@
 Object objects[MAX_OBJECTS] = {0};
 static int next_id = 1;
 
+static const Object* held_object = NULL;
+
 Object* ObjectConstruct(void)
 {
 	for (int i = 0; i < MAX_OBJECTS; i++)
@@ -47,6 +49,12 @@ Object* ObjectGet(int id)
 	return NULL;
 }
 
+Object* ObjectsGet(int* count)
+{
+	*count = MAX_OBJECTS;
+	return objects;
+}
+
 void ObjectsTick(float ft)
 {
 	// do nothing
@@ -60,7 +68,15 @@ void ObjectsDraw(void)
 	{
 		if (!objects[i].id) continue;
 
-		ObjectDraw(objects + i);
+		if (held_object == objects + i)
+		{
+			ObjectDrawShadowed(objects + i);
+		}
+		else
+		{
+			ObjectDraw(objects + i);
+		}
+
 		if (drawHitboxes)
 		{
 			DrawRectangleRec(ObjectRect(objects + i), RED);
@@ -70,11 +86,16 @@ void ObjectsDraw(void)
 
 Object* MousePickObject(Vector2 mpos)
 {
+	return MousePickObjectExcluding(mpos, NULL);
+}
+
+Object* MousePickObjectExcluding(Vector2 mpos, const Object* excluded)
+{
 	Object* pickedObject = NULL;
 	for (int i = 0; i < MAX_OBJECTS; i++)
 	{
 		Object* o = objects + i;
-		if (!o->id) continue;
+		if (!o->id || o == excluded) continue;
 
 		Rectangle rect = ObjectRect(o);
 		if (!CheckCollisionPointRec(mpos, rect)) continue;
@@ -83,4 +104,9 @@ Object* MousePickObject(Vector2 mpos)
 	}
 
 	return pickedObject;
+}
+
+void ObjectSetHeld(const Object* object)
+{
+	held_object = object;
 }

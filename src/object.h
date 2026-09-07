@@ -14,6 +14,7 @@ typedef struct Object
 {
 	Vector2 _position;
 	int id;
+	bool _locked;
 
 	ObjectType type;
 	union
@@ -34,6 +35,7 @@ typedef struct Object
 } Object;
 
 void ObjectDraw(const Object* object);
+void ObjectDrawShadowed(const Object* object);
 Rectangle ObjectRect(const Object* object);
 
 Object* ObjectReserveCreate(Vector2 position);

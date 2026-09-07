@@ -17,12 +17,7 @@ Object* ObjectReserveCreate(Vector2 position)
 	return object;
 }
 
-void ObjectReserveDraw(const Object* object)
-{
-	ObjectReserveDrawHighlight(object, BLANK);
-}
-
-void ObjectReserveDrawHighlight(const Object* object, Color highlight)
+static void ObjectReserveDrawInternal(const Object* object, bool shadowed, Color highlight)
 {
 	if (object->type != ObjectTypeReserve)
 	{
@@ -40,6 +35,16 @@ void ObjectReserveDrawHighlight(const Object* object, Color highlight)
 	Texture2D tex = small ? GetCardBackSmall() : GetCardBackLarge();
 	Rectangle src = small ? GetCardSourceSmall() : GetCardSourceLarge();
 
+	if (shadowed)
+	{
+		Rectangle shadowDest = dest;
+
+		dest.x -= OBJECT_SHADOW_OFFSET;
+		dest.y -= OBJECT_SHADOW_OFFSET;
+
+		DrawRectangleRounded(shadowDest, CARD_SHADOW_ROUNDNESS, CARD_SHADOW_SEGMENTS, Fade(BLACK, OBJECT_SHADOW_DARKNESS));
+	}
+
 	stackHeight = ObjectReserveStackHeight(object);
 
 	while (stackHeight > 0)
@@ -48,6 +53,21 @@ void ObjectReserveDrawHighlight(const Object* object, Color highlight)
 		dest.y -= offset;
 		stackHeight--;
 	}
+}
+
+void ObjectReserveDraw(const Object* object)
+{
+	ObjectReserveDrawInternal(object, false, BLANK);
+}
+
+void ObjectReserveDrawShadowed(const Object* object)
+{
+	ObjectReserveDrawInternal(object, true, BLANK);
+}
+
+void ObjectReserveDrawHighlight(const Object* object, Color highlight)
+{
+	ObjectReserveDrawInternal(object, false, highlight);
 }
 
 bool ObjectReserveFull(const Object* object)

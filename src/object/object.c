@@ -19,6 +19,19 @@ void ObjectDraw(const Object* object)
 	TraceLog(LOG_WARNING, "ObjectDraw unhandled case for object->type %d", object->type);
 }
 
+void ObjectDrawShadowed(const Object* object)
+{
+	switch (object->type)
+	{
+		case ObjectTypeReserve:
+			ObjectReserveDrawShadowed(object);
+			break;
+		case ObjectTypeDiscard:
+			ObjectDiscardDrawShadowed(object);
+			break;
+	}
+}
+
 Rectangle ObjectRect(const Object* object)
 {
 	switch (object->type)

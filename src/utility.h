@@ -21,3 +21,6 @@
 #define CHIT_EASE(t) (t < 0.8 ? 0.3f * t : EASE_OUT_EXP_ALT(t, 0.8f))
 
 #define EASE_OUT_BACK(t) (1 + (2.70158 * powf(t - 1, 3)) + (1.70158 * powf(t - 1, 2)))
+
+Rectangle RectangleInflate(Rectangle rec, float extents);
+Rectangle RectangleInflateV(Rectangle rec, Vector2 extents);

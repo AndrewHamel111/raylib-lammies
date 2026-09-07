@@ -19,12 +19,7 @@ Object* ObjectDiscardCreate(Vector2 position)
 	return object;
 }
 
-void ObjectDiscardDraw(const Object* object)
-{
-	ObjectDiscardDrawHighlight(object, BLANK);
-}
-
-void ObjectDiscardDrawHighlight(const Object* object, Color highlight)
+static void ObjectDiscardDrawInternal(const Object* object, bool shadowed, Color highlight)
 {
 	if (object->type != ObjectTypeDiscard)
 	{
@@ -40,6 +35,14 @@ void ObjectDiscardDrawHighlight(const Object* object, Color highlight)
 
 	Vector2 position = object->_position;
 
+	if (shadowed)
+	{
+		Rectangle objectRec = ObjectRect(object);
+		position.x -= OBJECT_SHADOW_OFFSET;
+		position.y -= OBJECT_SHADOW_OFFSET;
+		DrawRectangleRounded(objectRec, CARD_SHADOW_ROUNDNESS, CARD_SHADOW_SEGMENTS, Fade(BLACK, OBJECT_SHADOW_DARKNESS));
+	}
+
 	int i = 0;
 	while (stackHeight > 0)
 	{
@@ -48,6 +51,21 @@ void ObjectDiscardDrawHighlight(const Object* object, Color highlight)
 		position.y -= offset;
 		stackHeight--;
 	}
+}
+
+void ObjectDiscardDraw(const Object* object)
+{
+	ObjectDiscardDrawInternal(object, false, BLANK);
+}
+
+void ObjectDiscardDrawShadowed(const Object* object)
+{
+	ObjectDiscardDrawInternal(object, true, BLANK);
+}
+
+void ObjectDiscardDrawHighlight(const Object* object, Color highlight)
+{
+	ObjectDiscardDrawInternal(object, false, highlight);
 }
 
 bool ObjectDiscardFull(const Object* object)

@@ -42,7 +42,7 @@ static void CardDrawInternal(const Card* card, float alpha, Color highlight, boo
 	{
 		dest.x -= CARD_SHADOW_OFFSET;
 		dest.y -= CARD_SHADOW_OFFSET;
-		DrawRectangleRounded(shadowDest, 0.1f, 4, Fade(BLACK, CARD_SHADOW_DARKNESS));
+		DrawRectangleRounded(shadowDest, CARD_SHADOW_ROUNDNESS, CARD_SHADOW_SEGMENTS, Fade(BLACK, CARD_SHADOW_DARKNESS));
 	}
 
 	if (DebugDrawCardsSmall())

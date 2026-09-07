@@ -12,12 +12,17 @@
 #include "object/management.h"
 #include "object/reserve.h"
 #include "object/discard.h"
+#include "cursor.h"
 
 static Card* held_card = NULL;
 static Vector2 held_card_offset = {0};
 
 static Card* picked_card = NULL;
 static Object* picked_object = NULL;
+
+static Object* held_object = NULL;
+static Vector2 held_object_offset = V(0,0);
+static Vector2 held_object_last_position = V(0,0);
 
 static Deck main_deck;
 
@@ -152,14 +157,84 @@ void CardManagerUpdate(float ft)
 			}
 		}
 	}
+	else if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
+	{
+		Rectangle objectRec = picked_object ? ObjectRect(picked_object) : R(0,0,0,0);
+		if (!held_card && !held_object && picked_object && !picked_object->_locked
+			&& mpos.x > (picked_object->_position.x + (objectRec.width * 0.2f))
+			)
+		{
+			Vector2 offset = mpos;
+			offset.x = picked_object->_position.x + objectRec.width - OBJECT_HOLD_OFFSET;
+			held_object_offset = Vector2Subtract(picked_object->_position, offset);
+			held_object_last_position = picked_object->_position;
+			held_object = picked_object;
+			ObjectSetHeld(held_object);
+		}
+	}
+	else // IsMouseButtonReleased(MOUSE_BUTTON_RIGHT)
+	{
+		if (held_object)
+		{
+			Rectangle heldObjectRec = RectangleInflate(ObjectRect(held_object), OBJECT_PLACEMENT_INFLATE);
+			bool check = true;
 
-    if (held_card)
+			int objectsCount;
+			Object* objects = ObjectsGet(&objectsCount);
+			for (int i = 0; i < MAX_OBJECTS && check; i++)
+			{
+				if (!objects[i].id || objects + i == held_object) continue;
+
+				if (!CheckCollisionRecs(heldObjectRec, ObjectRect(objects + i))) continue;
+
+				check = false;
+			}
+
+			if (!check)
+			{
+				held_object->_position = held_object_last_position;
+			}
+			else
+			{
+				// do nothing
+			}
+			held_object = NULL;
+			ObjectSetHeld(NULL);
+		}
+	}
+
+	if (held_card)
     {
         held_card->_position = Vector2Add(mpos, held_card_offset);
     }
+	else if (held_object)
+	{
+		held_object->_position = Vector2Add(mpos, held_object_offset);
+	}
 
 	picked_card = MousePickCardExcluding(mpos, held_card);
-	picked_object = MousePickObject(mpos);
+	picked_object = MousePickObjectExcluding(mpos, held_object);
+
+	if (held_card)
+	{
+		CursorSetState(CursorHold);
+		CursorSetHeight(CursorHeightTop);
+	}
+	else if (held_object || IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
+	{
+		CursorSetState(CursorPalm);
+		CursorSetHeight(CursorHeightTable);
+	}
+	else if (picked_object || picked_card)
+	{
+		CursorSetState(CursorPick);
+		CursorSetHeight(CursorHeightTop);
+	}
+	else
+	{
+		CursorSetState(CursorDefault);
+		CursorSetHeight(CursorHeightTop);
+	}
 
     // DEBUG
 	if (DebugSpawnCard())

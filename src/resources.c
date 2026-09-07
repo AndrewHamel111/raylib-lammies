@@ -1,6 +1,7 @@
 #include "resources.h"
 #include "card/resources.h"
 #include "utility.h"
+#include "cursor.h"
 
 #if USE_RRES
 
@@ -53,6 +54,8 @@ Texture2D tex_card_small[4][13];
 Texture2D tex_card_small_extra[3]; // Back, Joker Black, Joker Red
 Texture2D tex_card_large[4][13];
 Texture2D tex_card_large_extra[3]; // Back, Joker Black, Joker Red
+
+Texture2D tex_cursor[4];
 
 static Texture2D LoadTextureInternal(const char* path)
 {
@@ -122,6 +125,11 @@ static void LoadUIAssets(void)
 {
 	fnt_receipt = LoadFontInternal("resources/BMREA___.TTF");
 	fnt_pop = LoadFontInternal("resources/gomarice_rockin_record.ttf");
+
+	tex_cursor[0] = LoadTextureInternal("resources/textures/cursor/cursor_default.png");
+	tex_cursor[1] = LoadTextureInternal("resources/textures/cursor/cursor_pick.png");
+	tex_cursor[2] = LoadTextureInternal("resources/textures/cursor/cursor_hold.png");
+	tex_cursor[3] = LoadTextureInternal("resources/textures/cursor/cursor_palm.png");
 }
 
 static void LoadAudio(void)
@@ -300,5 +308,28 @@ Rectangle GetCardSourceLarge(void)
 
 Texture2D GetCardValue(Suit suit, Rank rank, bool small)
 {
+	if (suit > 3 || rank > 12)
+	{
+		TraceLog(LOG_WARNING, "GetCardValue likely called with invalid parameters.");
+		return (Texture2D){0};
+	}
+
+	if (rank == Joker)
+	{
+		int idx = (suit == Spades || suit == Clubs) ? 1 : 2;
+		return small ? tex_card_small_extra[idx] : tex_card_large_extra[idx];
+	}
+	else if (rank < Joker)
+	{
+		return small ? tex_card_small_extra[0] : tex_card_large_extra[0];
+	}
+
 	return small ? tex_card_small[suit][rank] : tex_card_large[suit][rank];
+}
+
+Texture2D GetCursorTex(CursorState state)
+{
+	if (state > 3) return (Texture2D){0};
+
+	return tex_cursor[state];
 }

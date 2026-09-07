@@ -11,6 +11,7 @@
 
 #include "utility/timer.h"
 #include "utility/tween.h"
+#include "cursor.h"
 
 bool showGame = false;
 bool quitApp = false;
@@ -30,6 +31,8 @@ int main(void)
 	EndDrawing();
 
 	LoadResources();
+
+	CursorSetEnabled(true);
 
 #ifdef SKIP_MENU
     GameInit();

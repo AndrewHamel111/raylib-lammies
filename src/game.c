@@ -15,6 +15,7 @@
 #include "card/lock_timers.h"
 #include "card/resources.h"
 #include "object/management.h"
+#include "cursor.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -48,6 +49,11 @@ void GameLoop(void)
 	BeginDrawing();
 	{
 		ClearBackground(RAYWHITE);
+
+		if (CursorHeightGet() == CursorHeightTable)
+		{
+			CursorDraw();
+		}
 
 		ObjectsDraw();
         CardManagerDrawAllCards();
@@ -102,6 +108,10 @@ void GameLoop(void)
 		}
 
         DebugMenuDraw();
+		if (CursorHeightGet() == CursorHeightTop)
+		{
+			CursorDraw();
+		}
         DrawFPS(10, 10);
 	}
 	EndDrawing();

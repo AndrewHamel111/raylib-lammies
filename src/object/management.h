@@ -7,8 +7,12 @@ Object* ObjectConstruct(void);
 void ObjectFree(const Object* object);
 
 Object* ObjectGet(int id);
+Object* ObjectsGet(int* count);
 
 void ObjectsTick(float ft);
 void ObjectsDraw(void);
 
 Object* MousePickObject(Vector2 mpos);
+Object* MousePickObjectExcluding(Vector2 mpos, const Object* excluded);
+
+void ObjectSetHeld(const Object* object);
