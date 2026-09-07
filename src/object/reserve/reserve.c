@@ -107,16 +107,17 @@ Card* ObjectReservePop(Object* object)
 
 	Deck* deck = &(object->data.reserve.deck);
 
-	Card card = DrawNewCard(deck);
-	card._position = object->_position;
-	card._animationState = CardStateDefault;
-	card._faceUp = false;
+	Card* card = AddCardValue(DrawNewCardValue(deck));
+	card->_position = object->_position;
+	card->_animationState = CardStateDefault;
+	card->_faceUp = false;
 
 	// Destroy reserve if the last card is popped
 	if (GetDeckCount(deck) == 0)
 	{
-		DeleteObject(object);
+		RemoveObject(object);
+//		ObjectFree(object);
 	}
 
-	return AddCard(card);
+	return card;
 }

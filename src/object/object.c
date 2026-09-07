@@ -102,7 +102,7 @@ bool ObjectCombine(Object* source, Object* destination)
 	{
 		memmove(destDeck->arr + destDeck->count, sourceDeck->arr, sourceDeckCount * sizeof(uint));
 		destDeck->count += sourceDeckCount;
-		DeleteObject(source);
+		RemoveObject(source);
 		return true;
 	}
 	else if (DeckIsFull(destDeck))

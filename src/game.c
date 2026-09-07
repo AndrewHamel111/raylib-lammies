@@ -119,12 +119,13 @@ void GameLoop(void)
 			float fontSize = 32;
 			int spacer = 4;
 			int objectsCount;
-			Object* objects = ObjectsGet(&objectsCount);
+			Object** objects = ObjectsGetOrdered(&objectsCount);
 			DrawRectangleRec(R(0, 0, 320, (fontSize + spacer) * (objectsCount + 4)), Fade(BLACK, 0.75f));
 			for (int i = 0; i < objectsCount + 4; i++)
 			{
 				Color color = i < objectsCount ? WHITE : GRAY;
-				DrawTextEx(GetMonoFont(), TextFormat("[%d]: #%d", i, objects[i].id), V(spacer, spacer + (i * (fontSize + spacer))), fontSize, 1.0f, color);
+				int id = objects[i] ? objects[i]->id : 0;
+				DrawTextEx(GetMonoFont(), TextFormat("[%d]: #%d", i, id), V(spacer, spacer + (i * (fontSize + spacer))), fontSize, 1.0f, color);
 			}
 		}
 //        DrawFPS(10, 10);

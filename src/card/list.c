@@ -1,15 +1,23 @@
 #include <string.h>
 #include "list.h"
 #include "constants.h"
+#include "utility.h"
 
-static Card cards[MAX_CARDS] = {0};
+static Card cards_internal[MAX_CARDS] = {0};
+static Card* cards[MAX_CARDS] = {0};
 static int cards_count = 0;
 static int next_id = 1;
 
 Card* GetCards(int* outCount)
 {
-    *outCount = cards_count;
-    return cards;
+    *outCount = MAX_CARDS;
+    return cards_internal;
+}
+
+Card** GetCardsOrdered(int* outCount)
+{
+	*outCount = cards_count;
+	return cards;
 }
 
 Card* CreateCard(Vector2 position, Suit suit, Rank rank)
@@ -20,8 +28,14 @@ Card* CreateCard(Vector2 position, Suit suit, Rank rank)
         return NULL;
     }
 
-    Card* card = cards + cards_count;
-    cards_count++;
+	Card* card = NULL;
+	for (int i = 0; i < MAX_CARDS; i++)
+	{
+		if (cards_internal[i].id) continue;
+
+		card = cards_internal + i;
+		break;
+	}
 
 	card->id = next_id++;
     card->_position = position;
@@ -29,40 +43,28 @@ Card* CreateCard(Vector2 position, Suit suit, Rank rank)
     card->rank = rank;
     card->color = ColorFromHSV((float)GetRandomValue(0, 359), 0.2f, 0.8f);
 
+	cards[cards_count] = card;
+	cards_count++;
+
     return card;
-}
-
-Card* AddCard(Card card)
-{
-    if (cards_count == MAX_CARDS - 1)
-    {
-        TraceLog(LOG_ERROR, "Cannot add card to card list as cards_count is at MAX_CARDS");
-        return NULL;
-    }
-
-	Card* newCard = cards + cards_count;
-    *newCard = card;
-	newCard->id = next_id++;
-    cards_count++;
-	return newCard;
 }
 
 Card* AddCardValue(unsigned int value)
 {
-	Card card = {.rank = value % 13, .suit = value / 13};
-	return AddCard(card);
+	return CreateCard(V(0,0), value % 13, value / 13);
 }
 
 static int GetCardIndex(Card* card)
 {
-	size_t idx = ((long)card - (long)cards) / sizeof(Card);
-	if (idx >= MAX_CARDS)
+	for (int i = 0; i < cards_count; i++)
 	{
-		TraceLog(LOG_WARNING, "GetCardIndex failed");
-		return -1;
+		if (cards[i] != card) continue;
+
+		return i;
 	}
 
-	return (int)idx;
+	TraceLog(LOG_ERROR, "GetCardIndex failed");
+	return -1;
 }
 
 void DeleteCard(Card *card)
@@ -74,26 +76,33 @@ void DeleteCard(Card *card)
 		return;
 	}
 
-	DeleteCardAt(idx);
+	RemoveCardAt(idx);
+
+	*card = (Card){0};
 }
 
-void DeleteCardAt(int index)
+Card* RemoveCardAt(int index)
 {
 	if (index < 0 || index >= cards_count)
 	{
-		TraceLog(LOG_WARNING, "DeleteCardAt failed: invalid index");
-		return;
+		TraceLog(LOG_WARNING, "RemoveCardAt failed: invalid index");
+		return NULL;
 	}
+
+	Card* card = cards[index];
 
 	memmove(cards + index, cards + index + 1, (cards_count - 1 - index) * sizeof(Card));
 	cards_count--;
+
+	return card;
 }
 
 void DeleteAllCards(void)
 {
 	for (int i = 0; i < MAX_CARDS; i++)
 	{
-		cards[i] = (Card){0};
+		cards_internal[i] = (Card){0};
+		cards[i] = NULL;
 	}
 	cards_count = 0;
 }
@@ -118,13 +127,12 @@ Card* MoveCardAtToTop(int index)
 		return NULL;
 	}
 
-	Card copy = cards[index];
-	DeleteCardAt(index);
+	Card* value = RemoveCardAt(index);
 
-	cards[cards_count] = copy;
+	cards[cards_count] = value;
 	cards_count++;
 
-	return cards + cards_count - 1;
+	return cards[cards_count - 1];
 }
 
 Card* MousePickCard(Vector2 mpos)
@@ -138,7 +146,7 @@ Card* MousePickCardExcluding(Vector2 mpos, Card* excluded)
 
 	for (int i = 0; i < cards_count; ++i)
 	{
-		Card* card = cards + i;
+		Card* card = cards[i];
 		if (!card->_locked && CheckCollisionPointRec(mpos, CardGetRect(card)) && card != excluded)
 		{
 			heldCard = card;

@@ -194,13 +194,14 @@ void CardManagerUpdate(float ft)
 			}
 			else
 			{
+				// TODO: switch to ordered list if there's any problems
 				int objectsCount;
-				Object* objects = ObjectsGet(&objectsCount);
+				Object** objects = ObjectsGetOrdered(&objectsCount);
 				for (int i = 0; i < objectsCount && check; i++)
 				{
-					if (!objects[i].id || objects + i == held_object) continue;
+					if (!objects[i]->id || objects[i] == held_object) continue;
 
-					if (!CheckCollisionRecs(heldObjectRec, ObjectRect(objects + i))) continue;
+					if (!CheckCollisionRecs(heldObjectRec, ObjectRect(objects[i]))) continue;
 
 					check = false;
 				}
@@ -320,7 +321,9 @@ void CardManagerUpdate(float ft)
 		Card* cards = GetCards(&count);
 		for (int i = count - 1; i >= 0; i--)
 		{
-			DeleteCard(cards + i);
+			Card* card = cards + i;
+			DeleteCard(card);
+			//ObjectFree(card); // TODO: use this once Cards are objects, as Delete will become Remove and thus will not delete the inner object!
 			ReturnCardTo(&main_deck, cards[i], DeckBottom);
 		}
 	}
@@ -341,10 +344,10 @@ void CardManagerDrawAllCards(void)
 {
 	float ft = GetFrameTime();
     int cardsCount = 0;
-    Card* cards = GetCards(&cardsCount);
+    Card** cards = GetCardsOrdered(&cardsCount);
     for (int i = 0; i < cardsCount; ++i)
     {
-        Card* card = cards + i;
+        Card* card = cards[i];
 		float alpha = card->_locked ? 0.6f : 1.0f;
 		if (held_card == card)
 		{

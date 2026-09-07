@@ -123,16 +123,17 @@ Card* ObjectDiscardPop(Object* object)
 
 	Deck* deck = &(object->data.discard.deck);
 
-	Card card = DrawNewCard(deck);
-	card._position = object->_position;
-	card._animationState = CardStateDefault;
-	card._faceUp = true;
+	Card* card = AddCardValue(DrawNewCardValue(deck));
+	card->_position = object->_position;
+	card->_animationState = CardStateDefault;
+	card->_faceUp = true;
 
 	// Destroy discard if the last card is popped
 	if (GetDeckCount(deck) == 0)
 	{
-		DeleteObject(object);
+		RemoveObject(object);
+//		ObjectFree(object);
 	}
 
-	return AddCard(card);
+	return card;
 }
