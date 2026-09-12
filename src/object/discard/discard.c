@@ -2,18 +2,18 @@
 #include "object/discard.h"
 #include "object/management.h"
 #include "debug.h"
-#include "card/resources.h"
+#include "object/card/resources.h"
 #include "utility.h"
-#include "card/list.h"
 
 #include "rlgl.h"
+#include "object/card.h"
 
 static float card_rotations[] = { -5.0f, 8.0f, -3.0f, 11.0f, -8.0f, 4.0f, -7.0f, 6.0f, -9.0f, 10.0f, -13.0f, 2.0f };
 
-Object* ObjectDiscardCreate(Vector2 position)
+Object* ObjectCreateDiscard(Vector2 position)
 {
 	Object* object = ObjectConstruct();
-	object->type = ObjectTypeDiscard;
+	object->type = ObjectDiscard;
 	object->_position = position;
 
 	object->data.discard.deck = (Deck){0};
@@ -23,7 +23,7 @@ Object* ObjectDiscardCreate(Vector2 position)
 
 static void ObjectDiscardDrawInternal(const Object* object, bool shadowed, Color highlight)
 {
-	if (object->type != ObjectTypeDiscard)
+	if (object->type != ObjectDiscard)
 	{
 		TraceLog(LOG_ERROR, "ObjectDiscardDrawHighlight called on Object of non-Discard type!");
 		return;
@@ -69,7 +69,7 @@ static void ObjectDiscardDrawInternal(const Object* object, bool shadowed, Color
 		}
 
 		uint value = deck->arr[deck->count - stackHeight];
-		CardDrawCustom(position, value % 13, value / 13, card_rotations[i++], 1.0f, BLANK);
+		CardDrawCustom(position, value, card_rotations[i++], BLANK);
 		position.y -= offset;
 		stackHeight--;
 	}
@@ -92,7 +92,7 @@ void ObjectDiscardDrawHighlight(const Object* object, Color highlight)
 
 bool ObjectDiscardFull(const Object* object)
 {
-	if (object->type != ObjectTypeDiscard)
+	if (object->type != ObjectDiscard)
 	{
 		TraceLog(LOG_TRACE, "ObjectDiscardFull called on Object of non-Discard type!");
 		return true;
@@ -104,7 +104,7 @@ bool ObjectDiscardFull(const Object* object)
 
 int ObjectDiscardStackHeight(const Object* object)
 {
-	if (object->type != ObjectTypeDiscard)
+	if (object->type != ObjectDiscard)
 	{
 		TraceLog(LOG_ERROR, "ObjectDiscardStackHeight called on Object of non-Discard type!");
 		return true;
@@ -113,9 +113,9 @@ int ObjectDiscardStackHeight(const Object* object)
 	return CLAMPf(object->data.discard.deck.count, 1, 12);
 }
 
-Card* ObjectDiscardPop(Object* object)
+Object* ObjectDiscardPop(Object* object)
 {
-	if (object->type != ObjectTypeDiscard)
+	if (object->type != ObjectDiscard)
 	{
 		TraceLog(LOG_ERROR, "ObjectDiscardPop called on Object of non-Discard type!");
 		return NULL;
@@ -123,10 +123,12 @@ Card* ObjectDiscardPop(Object* object)
 
 	Deck* deck = &(object->data.discard.deck);
 
-	Card* card = AddCardValue(DrawNewCardValue(deck));
+	// TODO redefine card.value type as CardValue defined in utility/types to avoid uint / int narrowing?
+	Object* card = ObjectCreateCard(object->_position, DrawNewCardValue(deck));
+
 	card->_position = object->_position;
-	card->_animationState = CardStateDefault;
-	card->_faceUp = true;
+	card->data.card._animationState = CardStateDefault;
+	card->data.card._faceUp = true;
 
 	// Destroy discard if the last card is popped
 	if (GetDeckCount(deck) == 0)

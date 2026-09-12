@@ -1,6 +1,6 @@
 #pragma once
 
-#include "card.h"
+#include <stdbool.h>
 #include "utility/types.h"
 #include "constants.h"
 
@@ -20,13 +20,11 @@ typedef struct Deck
 
 void InitDeck(Deck* deck);
 
-Card DrawNewCard(Deck* deck);
 uint DrawNewCardValue(Deck* deck);
-void ReturnCard(Deck* deck, Card card);
-void ReturnCardTo(Deck* deck, Card card, DeckLocation where);
+void ReturnCard(Deck* deck, int value);
+void ReturnCardTo(Deck* deck, int value, DeckLocation where);
 void Shuffle(Deck* deck);
 
 int GetDeckCount(const Deck* deck);
 int GetDeckMax(const Deck* deck);
 bool DeckIsFull(const Deck* deck);
-

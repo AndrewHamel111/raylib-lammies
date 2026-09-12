@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "deck.h"
+#include "raylib.h"
 
 void InitDeck(Deck* deck)
 {
@@ -10,16 +11,6 @@ void InitDeck(Deck* deck)
 		deck->arr[i] = 51 - i;
 	}
 	deck->count = 52;
-}
-
-Card DrawNewCard(Deck* deck)
-{
-	uint value = DrawNewCardValue(deck);
-
-	Card result = (Card){0};
-	result.suit = value / 13;
-	result.rank = value % 13;
-	return result;
 }
 
 uint DrawNewCardValue(Deck* deck)
@@ -31,15 +22,15 @@ uint DrawNewCardValue(Deck* deck)
 	return top;
 }
 
-void ReturnCard(Deck* deck, Card card)
+void ReturnCard(Deck* deck, int value)
 {
-	ReturnCardTo(deck, card, DeckAnywhere);
+	ReturnCardTo(deck, value, DeckAnywhere);
 }
 
 // UNTESTED
-void ReturnCardTo(Deck* deck, Card card, DeckLocation where)
+void ReturnCardTo(Deck* deck, int value, DeckLocation where)
 {
-	uint cardValue = CardAsInt(card);
+	uint cardValue = value;
 	switch (where)
 	{
 		case DeckTop:

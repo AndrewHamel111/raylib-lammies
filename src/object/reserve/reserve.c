@@ -1,15 +1,14 @@
 #include "object/reserve.h"
 #include "object.h"
 #include "object/management.h"
-#include "card/resources.h"
+#include "object/card/resources.h"
 #include "utility.h"
 #include "debug.h"
-#include "card/list.h"
 
-Object* ObjectReserveCreate(Vector2 position)
+Object* ObjectCreateReserve(Vector2 position)
 {
 	Object* object = ObjectConstruct();
-	object->type = ObjectTypeReserve;
+	object->type = ObjectReserve;
 	object->_position = position;
 
 	object->data.reserve.deck = (Deck){0};
@@ -19,7 +18,7 @@ Object* ObjectReserveCreate(Vector2 position)
 
 static void ObjectReserveDrawInternal(const Object* object, bool shadowed, Color highlight)
 {
-	if (object->type != ObjectTypeReserve)
+	if (object->type != ObjectReserve)
 	{
 		TraceLog(LOG_ERROR, "ObjectReserveDrawHighlight called on Object of non-Reserve type!");
 		return;
@@ -32,8 +31,8 @@ static void ObjectReserveDrawInternal(const Object* object, bool shadowed, Color
 	bool small = DebugDrawCardsSmall();
 	Vector2 cardSize = small ? CARD_SIZE_SMALL : CARD_SIZE;
 	Rectangle dest = R(object->_position.x, object->_position.y, cardSize.x, cardSize.y);
-	Texture2D tex = small ? GetCardBackSmall() : GetCardBackLarge();
-	Rectangle src = small ? GetCardSourceSmall() : GetCardSourceLarge();
+	Texture2D tex = GetCardBack(small);
+	Rectangle src = GetCardSource(small);
 
 	if (shadowed)
 	{
@@ -77,7 +76,7 @@ void ObjectReserveDrawHighlight(const Object* object, Color highlight)
 
 bool ObjectReserveFull(const Object* object)
 {
-	if (object->type != ObjectTypeReserve)
+	if (object->type != ObjectReserve)
 	{
 		TraceLog(LOG_TRACE, "ObjectReserveFull called on Object of non-Reserve type!");
 		return true;
@@ -88,7 +87,7 @@ bool ObjectReserveFull(const Object* object)
 
 int ObjectReserveStackHeight(const Object* object)
 {
-	if (object->type != ObjectTypeReserve)
+	if (object->type != ObjectReserve)
 	{
 		TraceLog(LOG_ERROR, "ObjectReserveStackHeight called on Object of non-Reserve type!");
 		return -1;
@@ -97,9 +96,9 @@ int ObjectReserveStackHeight(const Object* object)
 	return CLAMPf(object->data.reserve.deck.count, 1, 4);
 }
 
-Card* ObjectReservePop(Object* object)
+Object* ObjectReservePop(Object* object)
 {
-	if (object->type != ObjectTypeReserve)
+	if (object->type != ObjectReserve)
 	{
 		TraceLog(LOG_ERROR, "ObjectReservePop called on Object of non-Reserve type!");
 		return NULL;
@@ -107,10 +106,12 @@ Card* ObjectReservePop(Object* object)
 
 	Deck* deck = &(object->data.reserve.deck);
 
-	Card* card = AddCardValue(DrawNewCardValue(deck));
+	// TODO redefine card.value type as CardValue defined in utility/types to avoid uint / int narrowing?
+	Object* card = ObjectCreateCard(object->_position, DrawNewCardValue(deck));
+
 	card->_position = object->_position;
-	card->_animationState = CardStateDefault;
-	card->_faceUp = false;
+	card->data.card._animationState = CardStateDefault;
+	card->data.card._faceUp = false;
 
 	// Destroy reserve if the last card is popped
 	if (GetDeckCount(deck) == 0)

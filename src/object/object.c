@@ -1,20 +1,42 @@
 #include <string.h>
 #include "object.h"
+
 #include "reserve.h"
+#include "discard.h"
+#include "card.h"
+
+#include "management.h"
 #include "utility.h"
 #include "debug.h"
-#include "discard.h"
-#include "management.h"
+
+void ObjectTick(Object* object, float ft)
+{
+	switch (object->type)
+	{
+		case ObjectReserve: // NOLINT(bugprone-branch-clone)
+			return;
+		case ObjectDiscard:
+			return;
+		case ObjectCard:
+			CardTick(object, ft);
+			return;
+	}
+
+	TraceLog(LOG_WARNING, "ObjectTick unhandled case for object->type %d", object->type);
+}
 
 void ObjectDraw(const Object* object)
 {
 	switch (object->type)
 	{
-		case ObjectTypeReserve:
+		case ObjectReserve:
 			ObjectReserveDraw(object);
 			return;
-		case ObjectTypeDiscard:
+		case ObjectDiscard:
 			ObjectDiscardDraw(object);
+			return;
+		case ObjectCard:
+			CardDraw(object);
 			return;
 	}
 
@@ -25,11 +47,14 @@ void ObjectDrawHighlight(const Object* object, Color highlight)
 {
 	switch (object->type)
 	{
-		case ObjectTypeReserve:
+		case ObjectReserve:
 			ObjectReserveDrawHighlight(object, highlight);
 			break;
-		case ObjectTypeDiscard:
+		case ObjectDiscard:
 			ObjectDiscardDrawHighlight(object, highlight);
+			break;
+		case ObjectCard:
+			CardDrawHighlight(object, highlight);
 			break;
 	}
 }
@@ -38,11 +63,14 @@ void ObjectDrawShadowed(const Object* object)
 {
 	switch (object->type)
 	{
-		case ObjectTypeReserve:
+		case ObjectReserve:
 			ObjectReserveDrawShadowed(object);
 			break;
-		case ObjectTypeDiscard:
+		case ObjectDiscard:
 			ObjectDiscardDrawShadowed(object);
+			break;
+		case ObjectCard:
+			CardDrawShadowed(object);
 			break;
 	}
 }
@@ -52,18 +80,23 @@ Rectangle ObjectRect(const Object* object)
 	switch (object->type)
 	{
 		// TODO: make these constants and update card.c accordingly
-		case ObjectTypeReserve:
+		case ObjectReserve:
 		{
 			Vector2 sz = DebugDrawCardsSmall() ? CARD_SIZE_SMALL : CARD_SIZE;
 			float yOff = (float)(ObjectReserveStackHeight(object) - 1) * RESERVE_STACK_OFFSET;
 			return R(object->_position.x, object->_position.y - yOff, sz.x, sz.y + yOff);
 		}
-		case ObjectTypeDiscard:
+		case ObjectDiscard:
 		{
 			Vector2 sz = DebugDrawCardsSmall() ? CARD_SIZE_SMALL : CARD_SIZE;
 			float yOff = (float)(ObjectDiscardStackHeight(object) - 1) * DISCARD_STACK_OFFSET;
 			return R(object->_position.x, object->_position.y - yOff, sz.x, sz.y + yOff);
 		}
+		case ObjectCard:
+		{
+			return CardGetRect(object);
+		}
+			break;
 	}
 
 	TraceLog(LOG_WARNING, "ObjectRect unhandled case for object->type %d", object->type);
@@ -83,11 +116,11 @@ bool ObjectCombine(Object* source, Object* destination)
 
 	switch (source->type)
 	{
-		case ObjectTypeReserve:
+		case ObjectReserve:
 			destDeck = &destination->data.reserve.deck;
 			sourceDeck = &source->data.reserve.deck;
 			break;
-		case ObjectTypeDiscard:
+		case ObjectDiscard:
 			destDeck = &destination->data.discard.deck;
 			sourceDeck = &source->data.discard.deck;
 			break;

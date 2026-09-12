@@ -10,10 +10,8 @@
 #include "debug.h"
 #include "debug_menu.h"
 
-#include "card.h"
-#include "card/manager.h"
-#include "card/lock_timers.h"
-#include "card/resources.h"
+#include "utility/lock_timers.h"
+#include "object/card/resources.h"
 #include "object/management.h"
 #include "cursor.h"
 
@@ -25,7 +23,6 @@
 void GameInit(void)
 {
 	// game setup //
-    CardManagerInit();
 	DebugMenuSetScaling(3);
 }
 
@@ -41,8 +38,7 @@ void GameLoop(void)
 	float ft = GetFrameTime();
 
 	ObjectsTick(ft);
-    CardManagerUpdate(ft);
-	TickCardLocks(ft);
+	TickObjectLocks(ft);
 
     // Draw //
 	BeginDrawing();
@@ -56,9 +52,7 @@ void GameLoop(void)
 
 		// TODO: some feedback that an object is hovering too close to another object would be nice, it's hard to tell where the valid placement area is.
 		// TODO: perhaps a visualization of all object hitboxes when moving objects, so it's clear where you're not allowed to place an object. In that case, should we be inflate the OTHER object's hitboxes instead
-		// TODO: god I can't wait for cards to be objects this sh is so annoying
 		ObjectsDraw();
-        CardManagerDrawAllCards();
 
         DebugMenuDraw();
 		if (CursorHeightGet() == CursorHeightTop)

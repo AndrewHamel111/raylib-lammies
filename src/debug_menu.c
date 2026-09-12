@@ -26,7 +26,7 @@ static bool useVSync;
 // debug.h) it may be possible to have a macro which defines all 3 parts.
 static bool spawnFactoryDeck;
 static bool spawnShuffledDeck;
-static bool clearCards;
+//static bool clearCards;
 static bool cleanupObjects;
 
 // NOT RECOMMENDED: values here are not static so they can be extern'd from gameplay code. AVOID IF POSSIBLE
@@ -80,16 +80,16 @@ bool DebugSpawnShuffledDeck(void)
 	return false;
 }
 
-bool DebugClearCards(void)
-{
-	if (clearCards)
-	{
-		clearCards = false;
-		return true;
-	}
-
-	return false;
-}
+//bool DebugClearCards(void)
+//{
+//	if (clearCards)
+//	{
+//		clearCards = false;
+//		return true;
+//	}
+//
+//	return false;
+//}
 
 bool DebugCleanupObjects(void)
 {
@@ -189,11 +189,11 @@ void DebugMenuDraw(void)
 		spawnShuffledDeck = true;
 	}
 	GuiLabel(NextLabel(), "-== Object Management ==-");
-	if(GuiButton(NextHalfButton(), "Cleanup Cards"))
-	{
-		clearCards = true;
-	}
-	if(GuiButton(NextHalfButton(), "Cleanup Objects"))
+//	if(GuiButton(NextButton(), "Cleanup Cards"))
+//	{
+//		clearCards = true;
+//	}
+	if(GuiButton(NextButton(), "Cleanup Objects"))
 	{
 		cleanupObjects = true;
 	}

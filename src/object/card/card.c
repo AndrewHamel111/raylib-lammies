@@ -1,18 +1,54 @@
-#include "../card.h"
-#include "utility.h"
+#include "object/card.h"
 #include "resources.h"
-#include "constants.h"
-#include "external/easings.h"
-#include "debug.h"
 #include "raymath.h"
 
-static void CardDrawInternal(const Card* card, float alpha, Color highlight, bool shadowed)
+#include "constants.h"
+#include "utility.h"
+#include "external/easings.h"
+#include "debug.h"
+#include "resources.h"
+#include "object/management.h"
+
+Object* ObjectCreateCard(Vector2 position, int value)
+{
+	Object* object = ObjectConstruct();
+	object->type = ObjectCard;
+	object->_position = position;
+
+	object->data.card.value = value;
+
+	return object;
+}
+
+void CardTick(Object* card, float ft)
+{
+	if (card->data.card._animationState != CardStateDefault)
+	{
+		// TODO: cards are not consistently flipping at the same speed.. why?
+		card->data.card._flipTime -= ft;
+		if (card->data.card._flipTime < 0)
+		{
+			if (card->data.card._animationState == CardStateFlippingDownIn || card->data.card._animationState == CardStateFlippingUpIn)
+			{
+				card->data.card._faceUp = ! card->data.card._faceUp;
+				card->data.card._flipTime = CARD_FLIP_TIME;
+				card->data.card._animationState++;
+			}
+			else
+			{
+				card->data.card._animationState = CardStateDefault;
+			}
+		}
+	}
+}
+
+static void CardDrawInternal(const Object* card, Color highlight, bool shadowed)
 {
 	Rectangle dest = CardGetRect(card);
 	float fullWidth = dest.width;
-	float t = 1.0f - (card->_flipTime / CARD_FLIP_TIME);
+	float t = 1.0f - (card->data.card._flipTime / CARD_FLIP_TIME);
 
-	switch (card->_animationState)
+	switch (card->data.card._animationState)
 	{
 		case CardStateDefault:
 			// do nothing
@@ -24,7 +60,7 @@ static void CardDrawInternal(const Card* card, float alpha, Color highlight, boo
 			break;
 		case CardStateFlippingDownOut:
 		case CardStateFlippingUpOut:
-            // TODO: folks say to look into different easings, aight
+			// TODO: folks say to look into different easings, aight
 			// May need to use one continuous easing for the whole motion
 			dest.width = EaseCubicOut(t, 0, fullWidth, 1.0f);
 			dest.x -= 0.5f * (dest.width - fullWidth);
@@ -45,42 +81,31 @@ static void CardDrawInternal(const Card* card, float alpha, Color highlight, boo
 		DrawRectangleRounded(shadowDest, CARD_SHADOW_ROUNDNESS, CARD_SHADOW_SEGMENTS, Fade(BLACK, CARD_SHADOW_DARKNESS));
 	}
 
-	if (DebugDrawCardsSmall())
+	bool small = DebugDrawCardsSmall();
+	if (!ColorIsEqual(highlight, BLANK))
 	{
-		if (!ColorIsEqual(highlight, BLANK))
-		{
-			DrawRectangleRounded(highlightDest, 0.1f, 6, highlight);
-		}
-		Texture2D tex = card->_faceUp ? GetCardSmall(card) : GetCardBackSmall();
-		DrawTexturePro(tex, GetCardSourceSmall(), dest, V(0.5f, 0.5f), 0.0f, card->_locked ? LIGHTGRAY : WHITE);
+		DrawRectangleRounded(highlightDest, 0.1f, 6, highlight);
 	}
-	else
-	{
-		if (!ColorIsEqual(highlight, BLANK))
-		{
-			DrawRectangleRounded(highlightDest, 0.1f, 6, highlight);
-		}
-		Texture2D tex = card->_faceUp ? GetCardLarge(card) : GetCardBackLarge();
-		DrawTexturePro(tex, GetCardSourceLarge(), dest, V(0.5f, 0.5f), 0.0f, card->_locked ? LIGHTGRAY : WHITE);
-	}
+	Texture2D tex = card->data.card._faceUp ? GetCardValue(card->data.card.value, small) : GetCardBack(small);
+	DrawTexturePro(tex, GetCardSource(small), dest, V(0.5f, 0.5f), 0.0f, card->_locked ? LIGHTGRAY : WHITE);
 }
 
-void CardDraw(const Card* card, float alpha)
+void CardDraw(const Object* card)
 {
-	CardDrawInternal(card, alpha, BLANK, false);
+	CardDrawInternal(card, BLANK, false);
 }
 
-void CardDrawHighlight(const Card* card, float alpha, Color highlight)
+void CardDrawHighlight(const Object* card, Color highlight)
 {
-	CardDrawInternal(card, alpha, highlight, false);
+	CardDrawInternal(card, highlight, false);
 }
 
-void CardDrawShadowed(const Card* card, float alpha)
+void CardDrawShadowed(const Object* card)
 {
-	CardDrawInternal(card, alpha, BLANK, true);
+	CardDrawInternal(card, BLANK, true);
 }
 
-void CardDrawCustom(Vector2 position, Rank rank, Suit suit, float rotation, float alpha, Color highlight)
+void CardDrawCustom(Vector2 position, int value, float rotation, Color highlight)
 {
 	bool small = DebugDrawCardsSmall();
 	Vector2 sz = small ? CARD_SIZE_SMALL : CARD_SIZE;
@@ -97,20 +122,40 @@ void CardDrawCustom(Vector2 position, Rank rank, Suit suit, float rotation, floa
 	{
 		DrawRectangleRounded(highlightDest, 0.1f, 6, highlight);
 	}
-	Texture2D tex = GetCardValue(suit, rank, small);
-	Rectangle src = small ? GetCardSourceSmall() : GetCardSourceLarge();
+	Texture2D tex = GetCardValue(value, small);
+	Rectangle src = GetCardSource(small);
 	DrawTexturePro(tex, src, dest, origin, rotation, WHITE);
 }
 
-Vector2 CardGetSize(const Card* card)
+Vector2 CardGetSize(void)
 {
-    return DebugDrawCardsSmall() ? CARD_SIZE_SMALL : CARD_SIZE;
+	return DebugDrawCardsSmall() ? CARD_SIZE_SMALL : CARD_SIZE;
 }
 
-Rectangle CardGetRect(const Card* card)
+Rectangle CardGetRect(const Object* card)
 {
-    Vector2 sz = CardGetSize(card);
+	Vector2 sz = CardGetSize();
 	return R(card->_position.x, card->_position.y, sz.x, sz.y);
+}
+
+Suit CardSuit(const Object* card)
+{
+	return GetSuit(card->data.card.value);
+}
+
+Rank CardRank(const Object* card)
+{
+	return GetRank(card->data.card.value);
+}
+
+Suit GetSuit(int value)
+{
+	return value / 13;
+}
+
+Rank GetRank(int value)
+{
+	return value % 13;
 }
 
 static const char* suit_name_lower[] = {"clubs", "diamonds", "hearts", "spades"};
@@ -150,9 +195,4 @@ const char* RankName(Rank rank)
 	if (rank == Ace) return "A";
 	if (rank == Ten) return "10";
 	return TextFormat("%c", '1' + rank);
-}
-
-unsigned int CardAsInt(Card card)
-{
-	return (card.suit * 13) + card.rank;
 }

@@ -9,4 +9,4 @@ void ObjectDiscardDrawHighlight(const Object* object, Color highlight);
 bool ObjectDiscardFull(const Object* object);
 int ObjectDiscardStackHeight(const Object* object);
 
-Card* ObjectDiscardPop(Object* object);
+Object* ObjectDiscardPop(Object* object);

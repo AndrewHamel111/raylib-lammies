@@ -10,5 +10,5 @@ bool DebugShowObjectStack(void);
 // I would prefer if the naming convention communicated it was a Discarded value (set to false after calling once)
 bool DebugSpawnFactoryDeck(void);
 bool DebugSpawnShuffledDeck(void);
-bool DebugClearCards(void);
+//bool DebugClearCards(void); // disabled temporarily
 bool DebugCleanupObjects(void);

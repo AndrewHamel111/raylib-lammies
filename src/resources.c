@@ -1,7 +1,8 @@
 #include "resources.h"
-#include "card/resources.h"
+#include "object/card/resources.h"
 #include "utility.h"
 #include "cursor.h"
+#include "object/card.h"
 
 #if USE_RRES
 
@@ -237,84 +238,75 @@ Font GetMonoFont(void)
 	return fnt_mono;
 }
 
-Texture2D GetCardSmall(const Card* card)
+Texture2D GetCardSmall(int value)
 {
-	if (card->suit < 0 || card->suit > 3)
+	Rank rank = GetRank(value);
+	Suit suit = GetSuit(value);
+	
+	if (suit < 0 || suit > 3)
 	{
 		TraceLog(LOG_WARNING, "GetCardSmall failed due to invalid suit!");
 		return (Texture2D){0};
 	}
 
-	if (card->rank < Joker || card->rank > King)
+	if (rank < Joker || rank > King)
 	{
 		TraceLog(LOG_WARNING, "GetCardSmall failed due to invalid rank!");
 		return (Texture2D){0};
 	}
 
-	if (card->rank == Joker)
+	if (rank == Joker)
 	{
-		int suit = (card->suit == Diamonds || card->suit == Hearts) ? 2 : 1;
+		int suit = (suit == Diamonds || suit == Hearts) ? 2 : 1;
 		return tex_card_small_extra[suit];
 	}
 
-	return tex_card_small[card->suit][card->rank];
+	return tex_card_small[suit][rank];
 }
 
-Texture2D GetCardLarge(const Card* card)
+Texture2D GetCardLarge(int value)
 {
-	if (card->suit < 0 || card->suit > 3)
+	Rank rank = GetRank(value);
+	Suit suit = GetSuit(value);
+
+	if (suit < 0 || suit > 3)
 	{
 		TraceLog(LOG_WARNING, "GetCardLarge failed due to invalid suit!");
 		return (Texture2D){0};
 	}
 
-	if (card->rank < Joker || card->rank > King)
+	if (rank < Joker || rank > King)
 	{
 		TraceLog(LOG_WARNING, "GetCardLarge failed due to invalid rank!");
 		return (Texture2D){0};
 	}
 
-	if (card->rank == Joker)
+	if (rank == Joker)
 	{
-		int suit = (card->suit == Diamonds || card->suit == Hearts) ? 2 : 1;
+		int suit = (suit == Diamonds || suit == Hearts) ? 2 : 1;
 		return tex_card_large_extra[suit];
 	}
 
-	return tex_card_large[card->suit][card->rank];
+	return tex_card_large[suit][rank];
 }
 
-Texture2D GetCardBackSmall(void)
+Texture2D GetCardBack(bool small)
 {
-	return tex_card_small_extra[0];
+	return small ? tex_card_small_extra[0] : tex_card_large_extra[0];
 }
 
-Texture2D GetCardBackLarge(void)
+const Rectangle card_source_small = {6, 2, 20, 29};
+const Rectangle card_source_large = {11, 2, 42, 60};
+Rectangle GetCardSource(bool small)
 {
-	return tex_card_large_extra[0];
+	return small ? card_source_small : card_source_large;
 }
 
-Texture2D GetCardJokerSmall(bool red)
+Texture2D GetCardValue(int value, bool small)
 {
-	return red ? tex_card_small_extra[2] : tex_card_small_extra[1] ;
-}
+	Rank rank = GetRank(value);
+	Suit suit = GetSuit(value);
 
-Texture2D GetCardJokerLarge(bool red)
-{
-	return red ? tex_card_large_extra[2] : tex_card_large_extra[1] ;
-}
-
-Rectangle GetCardSourceSmall(void)
-{
-	return R(6, 2, 20, 29);
-}
-
-Rectangle GetCardSourceLarge(void)
-{
-	return R(11, 2, 42, 60);
-}
-
-Texture2D GetCardValue(Suit suit, Rank rank, bool small)
-{
 	if (suit > 3 || rank > 12)
 	{
 		TraceLog(LOG_WARNING, "GetCardValue likely called with invalid parameters.");

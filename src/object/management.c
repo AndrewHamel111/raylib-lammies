@@ -42,6 +42,16 @@ void ObjectFree(const Object* object)
 		return;
 	}
 
+	int index = 0;
+	for (; index < objects_count; index++)
+	{
+		if (objects[index] != object) continue;
+
+		break;
+	}
+
+	if (index < objects_count) RemoveObjectAt(index);
+
 	*o = (Object){0};
 }
 
@@ -70,9 +80,16 @@ Object** ObjectsGetOrdered(int* count)
 	return objects;
 }
 
+extern void PlayerInteractionUpdate(float ft);
+
 void ObjectsTick(float ft)
 {
-	// do nothing
+	for (int i = 0; i < objects_count; i++)
+	{
+		ObjectTick(objects[i], ft);
+	}
+
+	PlayerInteractionUpdate(ft);
 }
 
 void ObjectsDraw(void)
