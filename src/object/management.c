@@ -197,7 +197,7 @@ Object* RemoveObjectAt(int index)
 	}
 	else
 	{
-		size_t sz = (objects_count - 1 - index) * sizeof(Object);
+		size_t sz = (objects_count - 1 - index) * sizeof(Object*);
 		if (sz <= 0)
 		{
 			TraceLog(LOG_ERROR, "RemoveObjectAt: Invalid sz");
