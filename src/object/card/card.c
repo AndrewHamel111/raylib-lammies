@@ -127,6 +127,28 @@ void CardDrawCustom(Vector2 position, int value, float rotation, Color highlight
 	DrawTexturePro(tex, src, dest, origin, rotation, WHITE);
 }
 
+void CardDrawBack(Vector2 position, float rotation, Color highlight)
+{
+	bool small = DebugDrawCardsSmall();
+	Vector2 sz = small ? CARD_SIZE_SMALL : CARD_SIZE;
+	Vector2 origin = Vector2Scale(sz, 0.5f);
+	Rectangle dest = R(position.x + origin.x, position.y + origin.y, sz.x, sz.y);
+
+	Rectangle highlightDest = dest;
+	highlightDest.x -= CARD_HIGHLIGHT_EXTENT;
+	highlightDest.y -= CARD_HIGHLIGHT_EXTENT;
+	highlightDest.width += 2* CARD_HIGHLIGHT_EXTENT;
+	highlightDest.height += 2* CARD_HIGHLIGHT_EXTENT;
+
+	if (!ColorIsEqual(highlight, BLANK))
+	{
+		DrawRectangleRounded(highlightDest, 0.1f, 6, highlight);
+	}
+	Texture2D tex = GetCardBack(small);
+	Rectangle src = GetCardSource(small);
+	DrawTexturePro(tex, src, dest, origin, rotation, WHITE);
+}
+
 Vector2 CardGetSize(void)
 {
 	return DebugDrawCardsSmall() ? CARD_SIZE_SMALL : CARD_SIZE;

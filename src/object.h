@@ -33,10 +33,12 @@ typedef struct Object
 		struct
 		{
 			Deck deck;
+			bool _faceUp;
 		} reserve;
 		struct
 		{
 			Deck deck;
+			bool _faceUp;
 		} discard;
 //		struct
 //		{
@@ -66,3 +68,5 @@ Object* ObjectCreateCard(Vector2 position, int value);
 
 /// Returns true if the combine deletes the source object, false if the source object should be returned to it's last position
 bool ObjectCombine(Object* source, Object* destination);
+bool ObjectFlippable(const Object* object);
+void ObjectFlip(Object* object);

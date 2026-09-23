@@ -8,6 +8,7 @@
 #include "management.h"
 #include "utility.h"
 #include "debug.h"
+#include "object/card/animation.h"
 
 void ObjectTick(Object* object, float ft)
 {
@@ -149,5 +150,29 @@ bool ObjectCombine(Object* source, Object* destination)
 		memmove(sourceDeck->arr, sourceDeck->arr + destDeckRemainingCap, (sourceDeckCount - destDeckRemainingCap) * sizeof(uint));
 		sourceDeck->count -= destDeckRemainingCap;
 		return false;
+	}
+}
+
+bool ObjectFlippable(const Object* object)
+{
+	return !object->_locked &&
+		(object->type == ObjectCard
+		|| object->type == ObjectReserve
+		|| object->type == ObjectDiscard);
+}
+
+void ObjectFlip(Object* object)
+{
+	switch (object->type)
+	{
+		case ObjectCard:
+			CardFlip(object);
+			return;
+		case ObjectReserve:
+			ReserveFlip(object);
+			return;
+		case ObjectDiscard:
+			DiscardFlip(object);
+			return;
 	}
 }

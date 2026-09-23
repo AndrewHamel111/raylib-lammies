@@ -144,9 +144,9 @@ void PlayerInteractionUpdate(float ft)
 //		{
 //			CardFlip(held_object);
 //		} else
-		if (!held_object && picked_object && picked_object->type == ObjectCard)
+		if (!held_object && picked_object && ObjectFlippable(picked_object))
 		{
-			CardFlip(picked_object);
+			ObjectFlip(picked_object);
 		}
 		else if (!held_object && !picked_object)
 		{

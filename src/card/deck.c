@@ -108,6 +108,16 @@ void Shuffle(Deck* deck)
 	}
 }
 
+void DeckReverse(Deck* deck)
+{
+	for (int i = 0; i < deck->count / 2; i++)
+	{
+		uint temp = deck->arr[i];
+		deck->arr[i] = deck->arr[deck->count - i - 1];
+		deck->arr[deck->count - i - 1] = temp;
+	}
+}
+
 int GetDeckCount(const Deck* deck)
 {
 	return deck->count;

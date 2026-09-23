@@ -17,6 +17,7 @@ Object* ObjectCreateDiscard(Vector2 position)
 	object->_position = position;
 
 	object->data.discard.deck = (Deck){0};
+	object->data.discard._faceUp = true;
 
 	return object;
 }
@@ -68,8 +69,16 @@ static void ObjectDiscardDrawInternal(const Object* object, bool shadowed, Color
 			rlPopMatrix();
 		}
 
-		uint value = deck->arr[deck->count - stackHeight];
-		CardDrawCustom(position, value, card_rotations[i++], BLANK);
+		if (object->data.discard._faceUp)
+		{
+			int value = (int)deck->arr[deck->count - stackHeight];
+			CardDrawCustom(position, value, card_rotations[i], BLANK);
+		}
+		else
+		{
+			CardDrawBack(position, card_rotations[i], BLANK);
+		}
+		i++;
 		position.y -= offset;
 		stackHeight--;
 	}
@@ -128,7 +137,7 @@ Object* ObjectDiscardPop(Object* object)
 
 	card->_position = object->_position;
 	card->data.card._animationState = CardStateDefault;
-	card->data.card._faceUp = true;
+	card->data.card._faceUp = object->data.discard._faceUp;
 
 	// Destroy discard if the last card is popped
 	if (GetDeckCount(deck) == 0)
@@ -138,4 +147,11 @@ Object* ObjectDiscardPop(Object* object)
 	}
 
 	return card;
+}
+
+void DiscardFlip(Object* object)
+{
+	// TODO: animation?
+	DeckReverse(&object->data.discard.deck);
+	object->data.discard._faceUp = !object->data.discard._faceUp;
 }

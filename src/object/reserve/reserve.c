@@ -12,6 +12,7 @@ Object* ObjectCreateReserve(Vector2 position)
 	object->_position = position;
 
 	object->data.reserve.deck = (Deck){0};
+	object->data.reserve._faceUp = false;
 
 	return object;
 }
@@ -53,7 +54,17 @@ static void ObjectReserveDrawInternal(const Object* object, bool shadowed, Color
 
 	while (stackHeight > 0)
 	{
-		DrawTexturePro(tex, src, dest, V(0,0), 0.0f, WHITE);
+		if (stackHeight == 1 && object->data.reserve._faceUp)
+		{
+			int value = (int)object->data.reserve.deck.arr[object->data.reserve.deck.count - 1];
+			Texture2D texAlt = GetCardValue(value, small);
+			DrawTexturePro(texAlt, src, dest, V(0,0), 0.0f, WHITE);
+		}
+		else
+		{
+			DrawTexturePro(tex, src, dest, V(0,0), 0.0f, WHITE);
+		}
+
 		dest.y -= offset;
 		stackHeight--;
 	}
@@ -111,7 +122,7 @@ Object* ObjectReservePop(Object* object)
 
 	card->_position = object->_position;
 	card->data.card._animationState = CardStateDefault;
-	card->data.card._faceUp = false;
+	card->data.card._faceUp = object->data.reserve._faceUp;
 
 	// Destroy reserve if the last card is popped
 	if (GetDeckCount(deck) == 0)
@@ -121,4 +132,11 @@ Object* ObjectReservePop(Object* object)
 	}
 
 	return card;
+}
+
+void ReserveFlip(Object* object)
+{
+	// TODO: animation?
+	DeckReverse(&object->data.reserve.deck);
+	object->data.reserve._faceUp = !object->data.reserve._faceUp;
 }

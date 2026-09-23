@@ -34,6 +34,7 @@ void CardDraw(const Object* card);
 void CardDrawHighlight(const Object* object, Color highlight);
 void CardDrawShadowed(const Object* object);
 void CardDrawCustom(Vector2 position, int value, float rotation, Color highlight);
+void CardDrawBack(Vector2 position, float rotation, Color highlight);
 
 Vector2 CardGetSize(void);
 Rectangle CardGetRect(const Object* object);

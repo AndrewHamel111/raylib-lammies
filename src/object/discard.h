@@ -10,3 +10,4 @@ bool ObjectDiscardFull(const Object* object);
 int ObjectDiscardStackHeight(const Object* object);
 
 Object* ObjectDiscardPop(Object* object);
+void DiscardFlip(Object* object);

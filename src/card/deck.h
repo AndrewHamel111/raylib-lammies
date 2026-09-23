@@ -24,6 +24,7 @@ uint DrawNewCardValue(Deck* deck);
 void ReturnCard(Deck* deck, int value);
 void ReturnCardTo(Deck* deck, int value, DeckLocation where);
 void Shuffle(Deck* deck);
+void DeckReverse(Deck* deck);
 
 int GetDeckCount(const Deck* deck);
 int GetDeckMax(const Deck* deck);

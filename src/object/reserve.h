@@ -10,3 +10,4 @@ bool ObjectReserveFull(const Object* object);
 int ObjectReserveStackHeight(const Object* object);
 
 Object* ObjectReservePop(Object* object);
+void ReserveFlip(Object* object);
