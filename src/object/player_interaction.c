@@ -6,6 +6,7 @@
 #include "discard.h"
 #include "object/card/animation.h"
 #include "cursor.h"
+#include "input.h"
 
 static Object* picked_object = NULL;
 
@@ -25,9 +26,9 @@ static bool trying_pickup = false;
 
 void PlayerInteractionUpdate(float ft)
 {
-	Vector2 mpos = GetMousePosition();
+	Vector2 curPos = CursorGetPos();
 
-	if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+	if (InputIs(InputPrimary, InputPressed))
 	{
 		if (!held_object && picked_object && picked_object->type == ObjectCard)
 		{
@@ -36,7 +37,7 @@ void PlayerInteractionUpdate(float ft)
 			{
 				held_object = temp;
 				hold_mode = HoldPick;
-				held_object_offset = Vector2Subtract(held_object->_position, mpos);
+				held_object_offset = Vector2Subtract(held_object->_position, curPos);
 			}
 		}
 		else if (!held_object && picked_object && picked_object->type == ObjectReserve)
@@ -53,7 +54,7 @@ void PlayerInteractionUpdate(float ft)
 				if (temp)
 				{
 					held_object = temp;
-					held_object_offset = Vector2Subtract(held_object->_position, mpos);
+					held_object_offset = Vector2Subtract(held_object->_position, curPos);
 				}
 				else
 				{
@@ -74,7 +75,7 @@ void PlayerInteractionUpdate(float ft)
 				if (temp)
 				{
 					held_object = temp;
-					held_object_offset = Vector2Subtract(held_object->_position, mpos);
+					held_object_offset = Vector2Subtract(held_object->_position, curPos);
 				}
 				else
 				{
@@ -83,7 +84,7 @@ void PlayerInteractionUpdate(float ft)
 			}
 		}
 	}
-	else if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
+	else if (InputIs(InputPrimary, InputReleased))
 	{
 		bool cardHeld = held_object && held_object->type == ObjectCard;
 		bool cardPicked = picked_object && picked_object->type == ObjectCard;
@@ -137,7 +138,7 @@ void PlayerInteractionUpdate(float ft)
 		held_object = NULL;
 	}
 
-	else if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
+	else if (InputIs(InputSecondary, InputPressed))
 	{
 //		if (held_object && held_object->type == ObjectCard)
 //		{
@@ -152,7 +153,7 @@ void PlayerInteractionUpdate(float ft)
 			trying_pickup = true;
 		}
 	}
-	else if (IsMouseButtonReleased(MOUSE_BUTTON_RIGHT))
+	else if (InputIs(InputSecondary, InputReleased))
 	{
 		trying_pickup = false;
 
@@ -208,10 +209,10 @@ void PlayerInteractionUpdate(float ft)
 	{
 		Rectangle objectRec = picked_object ? ObjectRect(picked_object) : R(0,0,0,0);
 		if (!held_object && picked_object && !picked_object->_locked
-			&& mpos.x > (picked_object->_position.x + (objectRec.width * 0.2f))
+			&& curPos.x > (picked_object->_position.x + (objectRec.width * 0.2f))
 				)
 		{
-			Vector2 offset = mpos;
+			Vector2 offset = curPos;
 			offset.x = picked_object->_position.x + objectRec.width - OBJECT_HOLD_OFFSET;
 			held_object_offset = Vector2Subtract(picked_object->_position, offset);
 			held_object_last_position = picked_object->_position;
@@ -225,10 +226,10 @@ void PlayerInteractionUpdate(float ft)
 
 	if (held_object)
 	{
-		held_object->_position = Vector2Add(mpos, held_object_offset);
+		held_object->_position = Vector2Add(curPos, held_object_offset);
 	}
 
-	picked_object = MousePickObjectExcluding(mpos, held_object);
+	picked_object = MousePickObjectExcluding(curPos, held_object);
 
 	ObjectSetPicked(picked_object);
 

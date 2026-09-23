@@ -14,6 +14,7 @@
 #include "object/card/resources.h"
 #include "object/management.h"
 #include "cursor.h"
+#include "input.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -37,6 +38,7 @@ void GameLoop(void)
 
 	float ft = GetFrameTime();
 
+	InputUpdate();
 	ObjectsTick(ft);
 	TickObjectLocks(ft);
 
