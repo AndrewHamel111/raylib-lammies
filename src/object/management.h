@@ -16,7 +16,7 @@ void ObjectsDraw(void);
 Object* MousePickObject(Vector2 mpos);
 Object* MousePickObjectExcluding(Vector2 mpos, const Object* excluded);
 
-void ObjectSetHeld(const Object* object);
+void ObjectSetHeld(Object* object);
 void ObjectSetPicked(const Object* object);
 
 // List stuff

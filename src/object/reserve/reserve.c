@@ -1,3 +1,4 @@
+#include <string.h>
 #include "object/reserve.h"
 #include "object.h"
 #include "object/management.h"
@@ -70,9 +71,132 @@ static void ObjectReserveDrawInternal(const Object* object, bool shadowed, Color
 	}
 }
 
-void ObjectReserveDraw(const Object* object)
+void ReserveTick(Object* object, float ft)
 {
-	ObjectReserveDrawInternal(object, false, BLANK);
+
+}
+
+void ReserveDraw(const Object* object)
+{
+	ObjectReserveDrawInternal(object, ObjectGetDrawShadowed(), ObjectGetDrawHighlight());
+}
+
+Rectangle ReserveRect(Object* object)
+{
+	Vector2 sz = DebugDrawCardsSmall() ? CARD_SIZE_SMALL : CARD_SIZE;
+	float yOff = (float)(ObjectReserveStackHeight(object) - 1) * RESERVE_STACK_OFFSET;
+	return R(object->_position.x, object->_position.y - yOff, sz.x, sz.y + yOff);
+}
+
+bool ReserveCombine(Object* source, Object* destination)
+{
+	Deck* destDeck = NULL;
+	Deck* sourceDeck = &source->data.reserve.deck;
+	// TODO: do we sometimes want to reverse the source deck depending on what the destination type is?
+
+	switch (destination->type)
+	{
+		case ObjectCard:
+			// TODO: once deck refactor is complete, we would create a new deck at this point
+			return false;
+		case ObjectReserve:
+			destDeck = &destination->data.reserve.deck;
+			break;
+		case ObjectDiscard:
+			destDeck = &destination->data.discard.deck;
+			break;
+		default:
+			TraceLog(LOG_ERROR, "ReserveCombine unhandled object type, no action was taken.");
+			return false;
+	}
+
+	// TODO: does this logic need to be moved to a utility function? see discard.c
+	int sourceDeckCount = GetDeckCount(sourceDeck);
+	int destDeckRemainingCap = GetDeckMax(destDeck) - GetDeckCount(destDeck);
+	if (destDeckRemainingCap >= sourceDeckCount)
+	{
+		memmove(destDeck->arr + destDeck->count, sourceDeck->arr, sourceDeckCount * sizeof(uint));
+		destDeck->count += sourceDeckCount;
+		RemoveObject(source);
+		return true;
+	}
+	else if (DeckIsFull(destDeck))
+	{
+		return false;
+	}
+	else
+	{
+		memmove(destDeck->arr + destDeck->count, sourceDeck->arr, destDeckRemainingCap * sizeof(uint));
+		destDeck->count += destDeckRemainingCap;
+		memmove(sourceDeck->arr, sourceDeck->arr + destDeckRemainingCap, (sourceDeckCount - destDeckRemainingCap) * sizeof(uint));
+		sourceDeck->count -= destDeckRemainingCap;
+		return false;
+	}
+}
+
+bool ReserveFlippable(const Object* object)
+{
+	// TODO: objects should hold "allowed actions" flags. locked is not detailed enough: perhaps an object
+	// can be drawn from but not moved or flipped, as example.
+	return object->_locked;
+}
+
+void ReserveFlip(Object* object)
+{
+	// TODO: animation?
+	DeckReverse(&object->data.reserve.deck);
+	object->data.reserve._faceUp = !object->data.reserve._faceUp;
+}
+
+void ReserveHandlePickup(Object* object)
+{
+	// stub
+	// TODO: likely to be used for animation
+}
+
+void ReserveHandleDrop(Object* object)
+{
+	// stub
+	// TODO: likely to be used for animation
+}
+
+ObjectInteractionResult ReserveHandleInput(Object* object, Input input)
+{
+	switch (input)
+	{
+		case InputPrimary:
+			if (object->_held)
+			{
+				ObjectInteractionResult result = {0};
+				result.type = OIR_ObjectCreated;
+				result.object = ObjectReservePop(object);
+
+				if (object->id)
+				{
+					// ReservePop pushes new object to top, so call this again to keep held object on top.
+					MoveObjectToTop(object);
+				}
+				else
+				{
+					result.type = OIR_HeldObjectDestroyed;
+				}
+
+				return result;
+			}
+			else
+			{
+				ObjectInteractionResult result = {0};
+				result.type = OIR_ObjectCreatedToHold;
+				result.object = ObjectReservePop(object);
+
+				return result;
+			}
+		case InputSecondary:
+			// Should I be called ObjectFlip here? or is that unneeded indirection?
+			ReserveFlip(object);
+		default:
+			break;
+	}
 }
 
 void ObjectReserveDrawShadowed(const Object* object)
@@ -128,15 +252,8 @@ Object* ObjectReservePop(Object* object)
 	if (GetDeckCount(deck) == 0)
 	{
 		RemoveObject(object);
-//		ObjectFree(object);
+		ObjectFree(object);
 	}
 
 	return card;
-}
-
-void ReserveFlip(Object* object)
-{
-	// TODO: animation?
-	DeckReverse(&object->data.reserve.deck);
-	object->data.reserve._faceUp = !object->data.reserve._faceUp;
 }

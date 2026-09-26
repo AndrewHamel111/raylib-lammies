@@ -1,3 +1,4 @@
+#include <string.h>
 #include "object.h"
 #include "object/discard.h"
 #include "object/management.h"
@@ -84,19 +85,132 @@ static void ObjectDiscardDrawInternal(const Object* object, bool shadowed, Color
 	}
 }
 
-void ObjectDiscardDraw(const Object* object)
+void DiscardTick(Object* object, float ft)
 {
-	ObjectDiscardDrawInternal(object, false, BLANK);
+	// do nothing
 }
 
-void ObjectDiscardDrawShadowed(const Object* object)
+void DiscardDraw(const Object* object)
 {
-	ObjectDiscardDrawInternal(object, true, BLANK);
+	ObjectDiscardDrawInternal(object, ObjectGetDrawShadowed(), ObjectGetDrawHighlight());
 }
 
-void ObjectDiscardDrawHighlight(const Object* object, Color highlight)
+Rectangle DiscardRect(Object* object)
 {
-	ObjectDiscardDrawInternal(object, false, highlight);
+	Vector2 sz = DebugDrawCardsSmall() ? CARD_SIZE_SMALL : CARD_SIZE;
+	float yOff = (float)(ObjectDiscardStackHeight(object) - 1) * DISCARD_STACK_OFFSET;
+	return R(object->_position.x, object->_position.y - yOff, sz.x, sz.y + yOff);
+}
+
+bool DiscardCombine(Object* source, Object* destination)
+{
+	Deck* destDeck = NULL;
+	Deck* sourceDeck = &source->data.discard.deck;
+	// TODO: do we sometimes want to reverse the source deck depending on what the destination type is?
+
+	switch (destination->type)
+	{
+		case ObjectCard:
+			// TODO: once deck refactor is complete, we would create a new deck at this point
+			return false;
+		case ObjectReserve:
+			destDeck = &destination->data.reserve.deck;
+			break;
+		case ObjectDiscard:
+			destDeck = &destination->data.discard.deck;
+			break;
+		default:
+			TraceLog(LOG_ERROR, "DiscardCombine unhandled object type, no action was taken.");
+			return false;
+	}
+
+	// TODO: does this logic need to be moved to a utility function? see reserve.c
+	int sourceDeckCount = GetDeckCount(sourceDeck);
+	int destDeckRemainingCap = GetDeckMax(destDeck) - GetDeckCount(destDeck);
+	if (destDeckRemainingCap >= sourceDeckCount)
+	{
+		memmove(destDeck->arr + destDeck->count, sourceDeck->arr, sourceDeckCount * sizeof(uint));
+		destDeck->count += sourceDeckCount;
+		RemoveObject(source);
+		return true;
+	}
+	else if (DeckIsFull(destDeck))
+	{
+		return false;
+	}
+	else
+	{
+		memmove(destDeck->arr + destDeck->count, sourceDeck->arr, destDeckRemainingCap * sizeof(uint));
+		destDeck->count += destDeckRemainingCap;
+		memmove(sourceDeck->arr, sourceDeck->arr + destDeckRemainingCap, (sourceDeckCount - destDeckRemainingCap) * sizeof(uint));
+		sourceDeck->count -= destDeckRemainingCap;
+		return false;
+	}
+}
+
+bool DiscardFlippable(const Object* object)
+{
+	// TODO: objects should hold "allowed actions" flags. locked is not detailed enough: perhaps an object
+	// can be drawn from but not moved or flipped, as example.
+	return !object->_locked;
+}
+
+void DiscardFlip(Object* object)
+{
+	// TODO: animation?
+	DeckReverse(&object->data.discard.deck);
+	object->data.discard._faceUp = !object->data.discard._faceUp;
+}
+
+void DiscardHandlePickup(Object* object)
+{
+	// stub
+	// TODO: likely to be used for animation
+}
+
+void DiscardHandleDrop(Object* object)
+{
+	// stub
+	// TODO: likely to be used for animation
+}
+
+ObjectInteractionResult DiscardHandleInput(Object* object, Input input)
+{
+	switch (input)
+	{
+		case InputPrimary:
+			if (object->_held)
+			{
+				ObjectInteractionResult result = {0};
+				result.type = OIR_ObjectCreated;
+				result.object = ObjectDiscardPop(object);
+
+				if (object->id)
+				{
+					// ReservePop pushes new object to top, so call this again to keep held object on top.
+					MoveObjectToTop(object);
+				}
+				else
+				{
+					result.type = OIR_HeldObjectDestroyed;
+				}
+
+				return result;
+			}
+			else
+			{
+				ObjectInteractionResult result = {0};
+				result.type = OIR_ObjectCreatedToHold;
+				result.object = ObjectDiscardPop(object);
+
+				return result;
+			}
+		case InputSecondary:
+			// Should I be called ObjectFlip here? or is that unneeded indirection?
+			DiscardFlip(object);
+		default:
+			break;
+	}
 }
 
 bool ObjectDiscardFull(const Object* object)
@@ -143,15 +257,8 @@ Object* ObjectDiscardPop(Object* object)
 	if (GetDeckCount(deck) == 0)
 	{
 		RemoveObject(object);
-//		ObjectFree(object);
+		ObjectFree(object);
 	}
 
 	return card;
-}
-
-void DiscardFlip(Object* object)
-{
-	// TODO: animation?
-	DeckReverse(&object->data.discard.deck);
-	object->data.discard._faceUp = !object->data.discard._faceUp;
 }

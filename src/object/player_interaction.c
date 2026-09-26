@@ -12,6 +12,7 @@ static Object* picked_object = NULL;
 
 static Object* held_object = NULL;
 static Vector2 held_object_offset = {0};
+// TODO: replace with held_object->details.lastValidPosition
 static Vector2 held_object_last_position = {0};
 
 typedef enum HoldMode
@@ -24,204 +25,147 @@ static HoldMode hold_mode = HoldPick;
 
 static bool trying_pickup = false;
 
+static void HoldObjectCustomOffset(Object* object, HoldMode mode, Vector2 offset)
+{
+	held_object = object;
+	held_object_offset = offset;
+	ObjectSetHeld(object);
+	hold_mode = mode;
+
+	if (object)
+	{
+		held_object_last_position = object->_position;
+	}
+}
+
+static void HoldObject(Object* object, HoldMode mode)
+{
+	Vector2 offset = object ? Vector2Subtract(object->_position, CursorGetPos()) : (Vector2){0};
+	HoldObjectCustomOffset(object, mode, offset);
+}
+
 void PlayerInteractionUpdate(float ft)
 {
 	Vector2 curPos = CursorGetPos();
 
-	if (InputIs(InputPrimary, InputPressed))
+	// new impl, not tested
+
+	picked_object = MousePickObjectExcluding(curPos, held_object);
+	ObjectSetPicked(picked_object);
+	Input input = InputGetPressed();
+
+	// TODO: do we need more object flags? i.e. coins, tokens, "the bus" train in dominoes, these would be single click
+	bool cardSpecialCase = picked_object && picked_object->type == ObjectCard && input == InputPrimary;
+
+	bool palmRelease = hold_mode == HoldPalm && InputIs(InputSecondary, InputReleased);
+	bool pickRelease = hold_mode == HoldPick && InputIs(InputPrimary, InputReleased);
+	bool releaseObject = palmRelease || pickRelease;
+
+	if (picked_object && !held_object && trying_pickup)
 	{
-		if (!held_object && picked_object && picked_object->type == ObjectCard)
+		Rectangle objectRec = ObjectRect(picked_object);
+		// TODO: add debug option to toggle this "require right side" condition"
+		bool rightSide = curPos.x > (picked_object->_position.x + (objectRec.width * 0.2f));
+		if (!picked_object->_locked && rightSide)
 		{
-			Object* temp = MoveObjectToTop(picked_object);
-			if (temp)
-			{
-				held_object = temp;
-				hold_mode = HoldPick;
-				held_object_offset = Vector2Subtract(held_object->_position, curPos);
-			}
-		}
-		else if (!held_object && picked_object && picked_object->type == ObjectReserve)
-		{
-			held_object = ObjectReservePop(picked_object);
-			hold_mode = HoldPick;
-			if (!held_object)
-			{
-				TraceLog(LOG_WARNING, "ObjectTypeReserve is picked on MouseLeft, but ObjectReservePop failed!");
-			}
-			else
-			{
-				Object* temp = MoveObjectToTop(held_object);
-				if (temp)
-				{
-					held_object = temp;
-					held_object_offset = Vector2Subtract(held_object->_position, curPos);
-				}
-				else
-				{
-					TraceLog(LOG_ERROR, "Failed to move held object to top! held_object may be invalid");
-				}
-			}
-		}
-		else if (!held_object && picked_object && picked_object->type == ObjectDiscard)
-		{
-			held_object = ObjectDiscardPop(picked_object);
-			if (!held_object)
-			{
-				TraceLog(LOG_WARNING, "ObjectTypeDiscard is picked on MouseLeft, but ObjectDiscardPop failed!");
-			}
-			else
-			{
-				Object* temp = MoveObjectToTop(held_object);
-				if (temp)
-				{
-					held_object = temp;
-					held_object_offset = Vector2Subtract(held_object->_position, curPos);
-				}
-				else
-				{
-					TraceLog(LOG_ERROR, "Failed to move held object to top! held_object may be invalid");
-				}
-			}
+			Vector2 offset = curPos;
+			offset.x = picked_object->_position.x + objectRec.width - OBJECT_HOLD_OFFSET;
+			offset = Vector2Subtract(picked_object->_position, offset);
+
+			HoldObjectCustomOffset(MoveObjectToTop(picked_object), HoldPalm, offset);
 		}
 	}
-	else if (InputIs(InputPrimary, InputReleased))
+	else if (cardSpecialCase && !held_object)
 	{
-		bool cardHeld = held_object && held_object->type == ObjectCard;
-		bool cardPicked = picked_object && picked_object->type == ObjectCard;
-		bool faceDownCardPicked = cardPicked && !picked_object->data.card._faceUp;
-		bool faceUpCardPicked = cardPicked && picked_object->data.card._faceUp;
-		if (cardHeld && faceDownCardPicked)
-		{
-			Object* reserve = ObjectCreateReserve(picked_object->_position);
-			Deck* deck = &(reserve->data.reserve.deck);
-
-			ReturnCardTo(deck, picked_object->data.card.value, DeckTop);
-			ReturnCardTo(deck, held_object->data.card.value, DeckTop);
-
-			ObjectFree(held_object);
-			ObjectFree(picked_object);
-			picked_object = NULL;
-		}
-
-			// create discard
-		else if (cardHeld && faceUpCardPicked)
-		{
-			Object* reserve = ObjectCreateDiscard(picked_object->_position);
-			Deck* deck = &(reserve->data.discard.deck);
-
-			ReturnCardTo(deck, picked_object->data.card.value, DeckTop);
-			ReturnCardTo(deck, held_object->data.card.value, DeckTop);
-
-			ObjectFree(held_object);
-			ObjectFree(picked_object);
-			picked_object = NULL;
-		}
-
-			// add card to reserve
-		else if (cardHeld && picked_object && !ObjectReserveFull(picked_object))
-		{
-			Deck* reserveDeck = &(picked_object->data.reserve.deck);
-
-			ReturnCardTo(reserveDeck, held_object->data.card.value, DeckTop);
-			ObjectFree(held_object);
-		}
-
-			// add card to discard
-		else if (cardHeld && picked_object && !ObjectDiscardFull(picked_object))
-		{
-			Deck* discardDeck = &(picked_object->data.discard.deck);
-
-			ReturnCardTo(discardDeck, held_object->data.card.value, DeckTop);
-			ObjectFree(held_object);
-		}
-
-		held_object = NULL;
+		HoldObject(MoveObjectToTop(picked_object), HoldPick);
 	}
-
-	else if (InputIs(InputSecondary, InputPressed))
+	else if (held_object && input)
 	{
-//		if (held_object && held_object->type == ObjectCard)
-//		{
-//			CardFlip(held_object);
-//		} else
-		if (!held_object && picked_object && ObjectFlippable(picked_object))
+		ObjectInteractionResult result = ObjectHandleInput(held_object, input);
+		if (result.type == OIR_ObjectCreatedToHold)
 		{
-			ObjectFlip(picked_object);
+			// This case doesn't really work with my game, I'm assuming I won't need to implement this!
+			TraceLog(LOG_WARNING, "OIR_ObjectCreatedToHold case hit in player interaction with held object");
 		}
-		else if (!held_object && !picked_object)
+		else if (result.type == OIR_HeldObjectDestroyed)
 		{
-			trying_pickup = true;
+			HoldObject(NULL, HoldPick);
+			trying_pickup = false;
+		}
+		else // result.type == OIR_None || result.type == OIR_ObjectCreated
+		{
+			// do nothing!
 		}
 	}
-	else if (InputIs(InputSecondary, InputReleased))
+	else if (!held_object && picked_object && input)
 	{
-		trying_pickup = false;
-
-		if (held_object)
+		ObjectInteractionResult result = ObjectHandleInput(picked_object, input);
+		if (result.type == OIR_ObjectCreatedToHold)
 		{
-			Rectangle heldObjectRec = RectangleInflate(ObjectRect(held_object), OBJECT_PLACEMENT_INFLATE);
-			Object* combineTarget = NULL;
-			bool check = true;
+			// No need to move, since the object was just created!
+			HoldObject(result.object, HoldPick);
+		}
+		else if (result.type == OIR_ObjectCreated)
+		{
+			// This case doesn't really work with my game, I'm assuming I won't need to implement this!
+			TraceLog(LOG_WARNING, "OIR_ObjectCreated case hit in player interaction with picked object");
+		}
+		else // result.type == OIR_None
+		{
+			// do nothing!
+		}
+	}
+	else if (held_object && releaseObject)
+	{
+		Rectangle heldObjectRec = ObjectRect(held_object);
+		heldObjectRec = RectangleInflate(ObjectRect(held_object), OBJECT_PLACEMENT_INFLATE);
+		bool hasOverlappingObject = false;
 
-			if (picked_object && picked_object->type == held_object->type)
-			{
-				combineTarget = picked_object;
-			}
-			else
-			{
-				int objectsCount;
-				Object** objects = ObjectsGetOrdered(&objectsCount);
-				for (int i = 0; i < objectsCount && check; i++)
-				{
-					if (!objects[i]->id || objects[i] == held_object) continue;
-
-					if (!CheckCollisionRecs(heldObjectRec, ObjectRect(objects[i]))) continue;
-
-					check = false;
-				}
-			}
-
-			if (combineTarget)
-			{
-				if (!ObjectCombine(held_object, combineTarget))
-				{
-					held_object->_position = held_object_last_position;
-				}
-				else
-				{
-					// this object is deleted by ObjectCombine
-					held_object = NULL;
-				}
-			}
-			else if (!check && held_object->type != ObjectCard)
+		if (picked_object)
+		{
+			if (!ObjectCombine(held_object, picked_object))
 			{
 				held_object->_position = held_object_last_position;
 			}
 			else
 			{
-				// do nothing
+				// this object is deleted by ObjectCombine, do nothing
 			}
-			held_object = NULL;
-			ObjectSetHeld(NULL);
 		}
-	}
-	else if (trying_pickup)
-	{
-		Rectangle objectRec = picked_object ? ObjectRect(picked_object) : R(0,0,0,0);
-		if (!held_object && picked_object && !picked_object->_locked
-			&& curPos.x > (picked_object->_position.x + (objectRec.width * 0.2f))
-				)
+		else
 		{
-			Vector2 offset = curPos;
-			offset.x = picked_object->_position.x + objectRec.width - OBJECT_HOLD_OFFSET;
-			held_object_offset = Vector2Subtract(picked_object->_position, offset);
-			held_object_last_position = picked_object->_position;
+			int objectsCount;
+			Object** objects = ObjectsGetOrdered(&objectsCount);
+			for (int i = 0; i < objectsCount && !hasOverlappingObject; i++)
+			{
+				if (!objects[i]->id || objects[i] == held_object) continue;
 
-			held_object = MoveObjectToTop(picked_object);
-			hold_mode = HoldPalm;
+				if (!CheckCollisionRecs(heldObjectRec, ObjectRect(objects[i]))) continue;
 
-			ObjectSetHeld(held_object);
+				hasOverlappingObject = true;
+			}
+
+			if (hasOverlappingObject)
+			{
+				// TODO: do we want a card just plucked from an object to return to the object?
+				held_object->_position = held_object_last_position;
+			}
 		}
+
+		HoldObject(NULL, HoldPick);
+		trying_pickup = false;
+	}
+	else if (picked_object && held_object && trying_pickup)
+	{
+		// TODO: continuous object sweeping impl here!
+	}
+	else if (InputIs(InputSecondary, InputPressed))
+	{
+		trying_pickup = true;
+	}
+	else if (InputIs(InputSecondary, InputReleased))
+	{
+		trying_pickup = false;
 	}
 
 	if (held_object)
@@ -229,10 +173,7 @@ void PlayerInteractionUpdate(float ft)
 		held_object->_position = Vector2Add(curPos, held_object_offset);
 	}
 
-	picked_object = MousePickObjectExcluding(curPos, held_object);
-
-	ObjectSetPicked(picked_object);
-
+	// update cursor state
 	if (held_object && hold_mode == HoldPick)
 	{
 		CursorSetState(CursorHold);
@@ -273,10 +214,6 @@ void PlayerInteractionUpdate(float ft)
 		InitDeck(deck);
 		Shuffle(deck);
 	}
-//	else if (DebugClearCards())
-//	{
-		// TODO: if we want to keep this, will need to write new logic
-//	}
 	else if (DebugCleanupObjects())
 	{
 		DeleteAllObjects();

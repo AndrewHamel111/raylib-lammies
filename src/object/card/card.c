@@ -8,6 +8,9 @@
 #include "debug.h"
 #include "resources.h"
 #include "object/management.h"
+#include "object/reserve.h"
+#include "object/discard.h"
+#include "animation.h"
 
 Object* ObjectCreateCard(Vector2 position, int value)
 {
@@ -42,9 +45,9 @@ void CardTick(Object* card, float ft)
 	}
 }
 
-static void CardDrawInternal(const Object* card, Color highlight, bool shadowed)
+static void CardDrawInternal(const Object* card, bool shadowed, Color highlight)
 {
-	Rectangle dest = CardGetRect(card);
+	Rectangle dest = CardRect(card);
 	float fullWidth = dest.width;
 	float t = 1.0f - (card->data.card._flipTime / CARD_FLIP_TIME);
 
@@ -92,17 +95,17 @@ static void CardDrawInternal(const Object* card, Color highlight, bool shadowed)
 
 void CardDraw(const Object* card)
 {
-	CardDrawInternal(card, BLANK, false);
+	CardDrawInternal(card, ObjectGetDrawShadowed(), ObjectGetDrawHighlight());
 }
 
 void CardDrawHighlight(const Object* card, Color highlight)
 {
-	CardDrawInternal(card, highlight, false);
+	CardDrawInternal(card, false, highlight);
 }
 
 void CardDrawShadowed(const Object* card)
 {
-	CardDrawInternal(card, BLANK, true);
+	CardDrawInternal(card, true, BLANK);
 }
 
 void CardDrawCustom(Vector2 position, int value, float rotation, Color highlight)
@@ -154,10 +157,97 @@ Vector2 CardGetSize(void)
 	return DebugDrawCardsSmall() ? CARD_SIZE_SMALL : CARD_SIZE;
 }
 
-Rectangle CardGetRect(const Object* card)
+Rectangle CardRect(const Object* card)
 {
 	Vector2 sz = CardGetSize();
 	return R(card->_position.x, card->_position.y, sz.x, sz.y);
+}
+
+bool CardCombine(Object* source, Object* destination)
+{
+	switch (destination->type)
+	{
+		case ObjectCard:
+			if (!destination->data.card._faceUp)
+			{
+				Object* reserve = ObjectCreateReserve(destination->_position);
+				Deck* deck = &(reserve->data.reserve.deck);
+
+				ReturnCardTo(deck, destination->data.card.value, DeckTop);
+				ReturnCardTo(deck, source->data.card.value, DeckTop);
+
+				ObjectFree(source);
+				ObjectFree(destination);
+				return true;
+			}
+			else
+			{
+				Object* reserve = ObjectCreateDiscard(destination->_position);
+				Deck* deck = &(reserve->data.discard.deck);
+
+				ReturnCardTo(deck, destination->data.card.value, DeckTop);
+				ReturnCardTo(deck, source->data.card.value, DeckTop);
+
+				ObjectFree(source);
+				ObjectFree(destination);
+				return false;
+			}
+		case ObjectReserve:
+			if (!ObjectReserveFull(destination))
+			{
+				Deck* reserveDeck = &(destination->data.reserve.deck);
+
+				ReturnCardTo(reserveDeck, source->data.card.value, DeckTop);
+				ObjectFree(source);
+				return true;
+			}
+			return false;
+		case ObjectDiscard:
+			if (!ObjectDiscardFull(destination))
+			{
+				Deck* discardDeck = &(destination->data.discard.deck);
+
+				ReturnCardTo(discardDeck, source->data.card.value, DeckTop);
+				ObjectFree(source);
+				return true;
+			}
+			return false;
+	}
+
+	TraceLog(LOG_ERROR, "CardCombine unhandled case for ObjectType %d", destination->type);
+}
+
+bool CardFlippable(const Object* object)
+{
+	return !object->_locked;
+}
+
+void CardHandlePickup(Object* object)
+{
+	// stub
+	// TODO: likely to be used for animation
+}
+
+void CardHandleDrop(Object* object)
+{
+	// stub
+	// TODO: likely to be used for animation
+}
+
+ObjectInteractionResult CardHandleInput(Object* object, Input input)
+{
+	switch (input)
+	{
+		case InputPrimary:
+			// do nothing!
+			break;
+		case InputSecondary:
+			CardFlip(object);
+			break;
+		default:
+			// do nothing!
+			break;
+	}
 }
 
 Suit CardSuit(const Object* card)

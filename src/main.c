@@ -10,6 +10,7 @@
 #include "game.h"
 #include "menu.h"
 #include "resources.h"
+#include "object/register.h"
 
 #include "utility/timer.h"
 #include "utility/tween.h"
@@ -34,6 +35,7 @@ int main(void)
 	EndDrawing();
 
 	LoadResources();
+	RegisterAllObjects();
 
 	CursorSetEnabled(true);
 

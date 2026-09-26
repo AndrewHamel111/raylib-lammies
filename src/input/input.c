@@ -8,7 +8,7 @@ static InputState GetMouseButtonInternal(int button)
 	return IsMouseButtonPressed(button) ? InputPressed :
 		   IsMouseButtonDown(button) ? InputHeld :
 		   IsMouseButtonReleased(button) ? InputReleased :
-		   InputNone;
+		   InputNotPressed;
 }
 
 void InputUpdate(void)
@@ -25,4 +25,11 @@ bool InputIs(Input input, InputState state)
 InputState InputGet(Input input)
 {
 	return inputs[input];
+}
+
+Input InputGetPressed(void)
+{
+	return inputs[InputPrimary] == InputPressed ? InputPrimary
+		: inputs[InputSecondary] == InputPressed ? InputSecondary
+		: InputNone;
 }

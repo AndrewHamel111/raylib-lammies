@@ -2,12 +2,17 @@
 
 #include "object.h"
 
-void ObjectReserveDraw(const Object* object);
-void ObjectReserveDrawShadowed(const Object* object);
-void ObjectReserveDrawHighlight(const Object* object, Color highlight);
+void ReserveTick(Object* object, float ft);
+void ReserveDraw(const Object* object);
+Rectangle ReserveRect(Object* object);
+bool ReserveCombine(Object* source, Object* destination);
+bool ReserveFlippable(const Object* object);
+void ReserveFlip(Object* object);
+void ReserveHandlePickup(Object* object);
+void ReserveHandleDrop(Object* object);
+ObjectInteractionResult ReserveHandleInput(Object* object, Input input);
 
 bool ObjectReserveFull(const Object* object);
 int ObjectReserveStackHeight(const Object* object);
 
 Object* ObjectReservePop(Object* object);
-void ReserveFlip(Object* object);

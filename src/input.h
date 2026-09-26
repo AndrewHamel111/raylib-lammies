@@ -4,14 +4,15 @@
 
 typedef enum Input
 {
-	InputPrimary = 0,
+	InputNone = 0,
+	InputPrimary = 1,
 	InputSecondary,
 	InputCount
 } Input;
 
 typedef enum InputState
 {
-	InputNone = 0,
+	InputNotPressed = 0,
 	InputPressed,
 	InputHeld,
 	InputReleased
@@ -21,3 +22,4 @@ void InputUpdate(void);
 
 bool InputIs(Input input, InputState state);
 InputState InputGet(Input input);
+Input InputGetPressed(void);

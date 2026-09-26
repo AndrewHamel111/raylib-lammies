@@ -10,7 +10,7 @@ Object* objects[MAX_OBJECTS] = {0};
 int objects_count = 0;
 static int next_id = 1;
 
-static const Object* held_object = NULL;
+static Object* held_object = NULL;
 static const Object* picked_object = NULL;
 
 Object* ObjectConstruct(void)
@@ -87,6 +87,7 @@ void ObjectsTick(float ft)
 	for (int i = 0; i < objects_count; i++)
 	{
 		ObjectTick(objects[i], ft);
+		Rectangle rect = ObjectRect(objects[i]);
 	}
 
 	PlayerInteractionUpdate(ft);
@@ -106,20 +107,18 @@ void ObjectsDraw(void)
 			{
 				CursorDraw();
 			}
-			ObjectDrawShadowed(objects[i]);
+			ObjectSetDrawShadowed();
 		}
 		else if (picked_object == objects[i])
 		{
-			ObjectDrawHighlight(objects[i], OBJECT_DEFAULT_HIGHLIGHT);
+			ObjectSetDrawHighlight(OBJECT_DEFAULT_HIGHLIGHT);
 		}
-		else
-		{
-			ObjectDraw(objects[i]);
-		}
+
+		ObjectDraw(objects[i]);
 
 		if (drawHitboxes)
 		{
-			DrawRectangleRec(ObjectRect(objects[i]), RED);
+			DrawRectangleRec(ObjectRect(objects[i]), Fade(RED, 0.5f));
 		}
 	}
 }
@@ -146,9 +145,21 @@ Object* MousePickObjectExcluding(Vector2 mpos, const Object* excluded)
 	return pickedObject;
 }
 
-void ObjectSetHeld(const Object* object)
+void ObjectSetHeld(Object* object)
 {
+	if (held_object)
+	{
+		held_object->_held = false;
+		ObjectHandleDrop(held_object);
+	}
+
 	held_object = object;
+
+	if (object)
+	{
+		object->_held = true;
+		ObjectHandlePickup(object);
+	}
 }
 
 void ObjectSetPicked(const Object* object)

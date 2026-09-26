@@ -2,6 +2,7 @@
 
 #include "raylib.h"
 #include "card/deck.h"
+#include "input.h"
 
 // TODO: be refactored into a general "object animation state" enum
 typedef enum CardAnimationState
@@ -15,10 +16,11 @@ typedef enum CardAnimationState
 
 typedef enum ObjectType
 {
+	ObjectCard = 0,
 	ObjectReserve,
 	ObjectDiscard,
 //	ObjectTypePacket
-	ObjectCard,
+	ObjectTypeCount,
 } ObjectType;
 
 typedef struct Object
@@ -26,6 +28,7 @@ typedef struct Object
 	Vector2 _position;
 	int id;
 	bool _locked;
+	bool _held;
 
 	ObjectType type;
 	union
@@ -55,18 +58,40 @@ typedef struct Object
 	} data;
 } Object;
 
+typedef enum ObjectInteractionResultType
+{
+	OIR_None,
+	OIR_ObjectCreated,
+	OIR_ObjectCreatedToHold,
+	OIR_HeldObjectDestroyed,
+} ObjectInteractionResultType;
+
+typedef struct ObjectInteractionResult
+{
+	ObjectInteractionResultType type;
+	Object* object;
+} ObjectInteractionResult;
+
+// Object interface functions, implemented in vtable.c
 void ObjectTick(Object* object, float ft);
 void ObjectDraw(const Object* object);
-void ObjectDrawHighlight(const Object* object, Color highlight);
-void ObjectDrawShadowed(const Object* object);
-
 Rectangle ObjectRect(const Object* object);
-
-Object* ObjectCreateReserve(Vector2 position);
-Object* ObjectCreateDiscard(Vector2 position);
-Object* ObjectCreateCard(Vector2 position, int value);
-
 /// Returns true if the combine deletes the source object, false if the source object should be returned to it's last position
 bool ObjectCombine(Object* source, Object* destination);
 bool ObjectFlippable(const Object* object);
 void ObjectFlip(Object* object);
+void ObjectHandlePickup(Object* object);
+void ObjectHandleDrop(Object* object);
+ObjectInteractionResult ObjectHandleInput(Object* object, Input input);
+
+void ObjectSetDrawHighlight(Color highlight);
+void ObjectSetDrawShadowed(void);
+
+Color ObjectGetDrawHighlight(void);
+bool ObjectGetDrawShadowed(void);
+
+// TODO: pending deletion
+Object* ObjectCreateReserve(Vector2 position);
+Object* ObjectCreateDiscard(Vector2 position);
+Object* ObjectCreateCard(Vector2 position, int value);
+
