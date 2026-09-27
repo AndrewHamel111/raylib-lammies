@@ -25,6 +25,11 @@ void CursorSetState(CursorState state)
 	cursor_state = state;
 }
 
+CursorState CursorGetState(void)
+{
+	return cursor_state;
+}
+
 void CursorSetHeight(CursorHeight height)
 {
 	if (cursor_height == height) return;

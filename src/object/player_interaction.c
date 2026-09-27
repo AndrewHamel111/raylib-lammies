@@ -61,7 +61,10 @@ void PlayerInteractionUpdate(float ft)
 	bool pickRelease = hold_mode == HoldPick && InputIs(InputPrimary, InputReleased);
 	bool releaseObject = palmRelease || pickRelease;
 
-	if (picked_object && !held_object && trying_pickup)
+	bool tryingPickup = CursorGetState() == CursorPalm;
+	bool tryingSweep = CursorGetState() == CursorPalmSweep;
+
+	if (picked_object && !held_object && (tryingPickup || tryingSweep))
 	{
 		Rectangle objectRec = ObjectRect(picked_object);
 		// TODO: add debug option to toggle this "require right side" condition"
@@ -90,7 +93,8 @@ void PlayerInteractionUpdate(float ft)
 		else if (result.type == OIR_HeldObjectDestroyed)
 		{
 			HoldObject(NULL, HoldPick);
-			trying_pickup = false;
+			CursorSetState(CursorPick);
+//			trying_pickup = false;
 		}
 		else // result.type == OIR_None || result.type == OIR_ObjectCreated
 		{
@@ -123,7 +127,8 @@ void PlayerInteractionUpdate(float ft)
 
 		if (picked_object)
 		{
-			if (!ObjectCombine(held_object, picked_object))
+			ObjectCombinationResult result = ObjectCombine(held_object, picked_object);
+			if (!(result.type & OCR_SourceDestroyed))
 			{
 				held_object->_position = held_object_last_position;
 			}
@@ -153,51 +158,58 @@ void PlayerInteractionUpdate(float ft)
 		}
 
 		HoldObject(NULL, HoldPick);
-		trying_pickup = false;
+		CursorSetState(CursorPick);
+//		trying_pickup = false;
 	}
-	else if (picked_object && held_object && trying_pickup)
+	else if (picked_object && held_object && tryingSweep && !picked_object->_locked)
 	{
-		// TODO: continuous object sweeping impl here!
+		ObjectCombinationResult result = ObjectCombine(picked_object, held_object);
+		if (result.type & OCR_NewObject)
+		{
+			HoldObject(result.object, HoldPalm);
+		}
 	}
-	else if (InputIs(InputSecondary, InputPressed))
+	else
 	{
-		trying_pickup = true;
-	}
-	else if (InputIs(InputSecondary, InputReleased))
-	{
-		trying_pickup = false;
+		// Cursor update case
+		if (InputIs(InputSecondary, InputPressed))
+		{
+			if (InputIs(InputPrimary, InputHeld))
+			{
+				CursorSetState(CursorPalmSweep);
+			}
+			else
+			{
+				CursorSetState(CursorPalm);
+			}
+		}
+		else if (InputIs(InputPrimary, InputPressed))
+		{
+			if (CursorGetState() == CursorPalm)
+			{
+				CursorSetState(CursorPalmSweep);
+			}
+		}
+		else if (InputIs(InputSecondary, InputReleased))
+		{
+			CursorSetState(CursorDefault);
+		}
+		else if (InputIs(InputPrimary, InputReleased))
+		{
+			if (CursorGetState() == CursorPalmSweep)
+			{
+				CursorSetState(CursorPalm);
+			}
+		}
+		else if (picked_object)
+		{
+			CursorSetState(CursorPick);
+		}
 	}
 
 	if (held_object)
 	{
 		held_object->_position = Vector2Add(curPos, held_object_offset);
-	}
-
-	// update cursor state
-	if (held_object && hold_mode == HoldPick)
-	{
-		CursorSetState(CursorHold);
-		CursorSetHeight(CursorHeightTop);
-	}
-	else if (held_object)
-	{
-		CursorSetState(CursorPalm);
-		CursorSetHeight(CursorHeightObject);
-	}
-	else if (trying_pickup)
-	{
-		CursorSetState(CursorPalm);
-		CursorSetHeight(CursorHeightTable);
-	}
-	else if (picked_object)
-	{
-		CursorSetState(CursorPick);
-		CursorSetHeight(CursorHeightTop);
-	}
-	else
-	{
-		CursorSetState(CursorDefault);
-		CursorSetHeight(CursorHeightTop);
 	}
 
 	// DEBUG

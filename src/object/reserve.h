@@ -5,7 +5,7 @@
 void ReserveTick(Object* object, float ft);
 void ReserveDraw(const Object* object);
 Rectangle ReserveRect(Object* object);
-bool ReserveCombine(Object* source, Object* destination);
+ObjectCombinationResult ReserveCombine(Object* source, Object* destination);
 bool ReserveFlippable(const Object* object);
 void ReserveFlip(Object* object);
 void ReserveHandlePickup(Object* object);

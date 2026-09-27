@@ -72,12 +72,26 @@ typedef struct ObjectInteractionResult
 	Object* object;
 } ObjectInteractionResult;
 
+typedef enum ObjectCombinationResultType
+{
+	OCR_Failed = 0,
+	OCR_Success = 1,
+	OCR_NewObject = 2,
+	OCR_SourceDestroyed = 4,
+} ObjectCombinationResultType;
+
+typedef struct ObjectCombinationResult
+{
+	ObjectCombinationResultType type;
+	Object* object;
+} ObjectCombinationResult;
+
 // Object interface functions, implemented in vtable.c
 void ObjectTick(Object* object, float ft);
 void ObjectDraw(const Object* object);
 Rectangle ObjectRect(const Object* object);
 /// Returns true if the combine deletes the source object, false if the source object should be returned to it's last position
-bool ObjectCombine(Object* source, Object* destination);
+ObjectCombinationResult ObjectCombine(Object* source, Object* destination);
 bool ObjectFlippable(const Object* object);
 void ObjectFlip(Object* object);
 void ObjectHandlePickup(Object* object);

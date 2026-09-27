@@ -9,6 +9,7 @@ typedef enum CursorState
 	CursorPick,
 	CursorHold,
 	CursorPalm,
+	CursorPalmSweep,
 } CursorState;
 
 typedef enum CursorHeight
@@ -20,6 +21,7 @@ typedef enum CursorHeight
 
 void CursorDraw(void);
 void CursorSetState(CursorState state);
+CursorState CursorGetState(void);
 CursorHeight CursorHeightGet(void);
 void CursorSetHeight(CursorHeight height);
 

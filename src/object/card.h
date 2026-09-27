@@ -33,7 +33,7 @@ typedef enum Rank
 void CardTick(Object* card, float ft);
 void CardDraw(const Object* card);
 Rectangle CardRect(const Object* card);
-bool CardCombine(Object* source, Object* destination);
+ObjectCombinationResult CardCombine(Object* source, Object* destination);
 bool CardFlippable(const Object* object);
 //void CardFlip(Object* object); // defined in object/card/animation.h
 void CardHandlePickup(Object* object);

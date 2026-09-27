@@ -57,7 +57,7 @@ Texture2D tex_card_small_extra[3]; // Back, Joker Black, Joker Red
 Texture2D tex_card_large[4][13];
 Texture2D tex_card_large_extra[3]; // Back, Joker Black, Joker Red
 
-Texture2D tex_cursor[4];
+Texture2D tex_cursor[5];
 
 static Texture2D LoadTextureInternal(const char* path)
 {
@@ -133,6 +133,7 @@ static void LoadUIAssets(void)
 	tex_cursor[1] = LoadTextureInternal("resources/textures/cursor/cursor_pick.png");
 	tex_cursor[2] = LoadTextureInternal("resources/textures/cursor/cursor_hold.png");
 	tex_cursor[3] = LoadTextureInternal("resources/textures/cursor/cursor_palm.png");
+	tex_cursor[4] = LoadTextureInternal("resources/textures/cursor/cursor_palm_sweep.png");
 }
 
 static void LoadAudio(void)
@@ -328,7 +329,7 @@ Texture2D GetCardValue(int value, bool small)
 
 Texture2D GetCursorTex(CursorState state)
 {
-	if (state > 3) return (Texture2D){0};
+	if (state > 4) return (Texture2D){0};
 
 	return tex_cursor[state];
 }

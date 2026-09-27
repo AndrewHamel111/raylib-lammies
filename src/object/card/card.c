@@ -163,8 +163,10 @@ Rectangle CardRect(const Object* card)
 	return R(card->_position.x, card->_position.y, sz.x, sz.y);
 }
 
-bool CardCombine(Object* source, Object* destination)
+ObjectCombinationResult CardCombine(Object* source, Object* destination)
 {
+	ObjectCombinationResult result = {0};
+
 	switch (destination->type)
 	{
 		case ObjectCard:
@@ -178,7 +180,9 @@ bool CardCombine(Object* source, Object* destination)
 
 				ObjectFree(source);
 				ObjectFree(destination);
-				return true;
+
+				result.type = OCR_SourceDestroyed | OCR_NewObject;
+				return result;
 			}
 			else
 			{
@@ -190,7 +194,9 @@ bool CardCombine(Object* source, Object* destination)
 
 				ObjectFree(source);
 				ObjectFree(destination);
-				return false;
+
+				result.type = OCR_SourceDestroyed | OCR_NewObject;
+				return result;
 			}
 		case ObjectReserve:
 			if (!ObjectReserveFull(destination))
@@ -199,9 +205,11 @@ bool CardCombine(Object* source, Object* destination)
 
 				ReturnCardTo(reserveDeck, source->data.card.value, DeckTop);
 				ObjectFree(source);
-				return true;
+
+				result.type = OCR_SourceDestroyed;
+				return result;
 			}
-			return false;
+			return result;
 		case ObjectDiscard:
 			if (!ObjectDiscardFull(destination))
 			{
@@ -209,9 +217,11 @@ bool CardCombine(Object* source, Object* destination)
 
 				ReturnCardTo(discardDeck, source->data.card.value, DeckTop);
 				ObjectFree(source);
-				return true;
+
+				result.type = OCR_SourceDestroyed;
+				return result;
 			}
-			return false;
+			return result;
 	}
 
 	TraceLog(LOG_ERROR, "CardCombine unhandled case for ObjectType %d", destination->type);

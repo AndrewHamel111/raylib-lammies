@@ -102,8 +102,10 @@ Rectangle DiscardRect(Object* object)
 	return R(object->_position.x, object->_position.y - yOff, sz.x, sz.y + yOff);
 }
 
-bool DiscardCombine(Object* source, Object* destination)
+ObjectCombinationResult DiscardCombine(Object* source, Object* destination)
 {
+	ObjectCombinationResult result = {0};
+
 	Deck* destDeck = NULL;
 	Deck* sourceDeck = &source->data.discard.deck;
 	// TODO: do we sometimes want to reverse the source deck depending on what the destination type is?
@@ -111,8 +113,27 @@ bool DiscardCombine(Object* source, Object* destination)
 	switch (destination->type)
 	{
 		case ObjectCard:
-			// TODO: once deck refactor is complete, we would create a new deck at this point
-			return false;
+			if (!destination->data.card._faceUp)
+			{
+				Object* reserve = ObjectCreateReserve(destination->_position);
+				destDeck = &(reserve->data.reserve.deck);
+
+				ReturnCardTo(destDeck, destination->data.card.value, DeckTop);
+				ObjectFree(destination);
+
+				result.type |= OCR_NewObject;
+			}
+			else
+			{
+				Object* discard = ObjectCreateDiscard(destination->_position);
+				destDeck = &(discard->data.discard.deck);
+
+				ReturnCardTo(destDeck, destination->data.card.value, DeckTop);
+				ObjectFree(destination);
+
+				result.type |= OCR_NewObject;
+			}
+			break;
 		case ObjectReserve:
 			destDeck = &destination->data.reserve.deck;
 			break;
@@ -121,7 +142,8 @@ bool DiscardCombine(Object* source, Object* destination)
 			break;
 		default:
 			TraceLog(LOG_ERROR, "DiscardCombine unhandled object type, no action was taken.");
-			return false;
+
+			return result;
 	}
 
 	// TODO: does this logic need to be moved to a utility function? see reserve.c
@@ -132,11 +154,13 @@ bool DiscardCombine(Object* source, Object* destination)
 		memmove(destDeck->arr + destDeck->count, sourceDeck->arr, sourceDeckCount * sizeof(uint));
 		destDeck->count += sourceDeckCount;
 		RemoveObject(source);
-		return true;
+
+		result.type |= OCR_SourceDestroyed;
+		return result;
 	}
 	else if (DeckIsFull(destDeck))
 	{
-		return false;
+		return result;
 	}
 	else
 	{
@@ -144,7 +168,9 @@ bool DiscardCombine(Object* source, Object* destination)
 		destDeck->count += destDeckRemainingCap;
 		memmove(sourceDeck->arr, sourceDeck->arr + destDeckRemainingCap, (sourceDeckCount - destDeckRemainingCap) * sizeof(uint));
 		sourceDeck->count -= destDeckRemainingCap;
-		return false;
+
+		result.type |= OCR_Success;
+		return result;
 	}
 }
 

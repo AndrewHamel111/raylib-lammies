@@ -83,5 +83,5 @@ int main(void)
 
 void StartMusic(void)
 {
-    PlayMusicStream(GetBGM());
+//    PlayMusicStream(GetBGM());
 }

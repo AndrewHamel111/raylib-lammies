@@ -5,7 +5,7 @@
 void DiscardTick(Object* object, float ft);
 void DiscardDraw(const Object* object);
 Rectangle DiscardRect(Object* object);
-bool DiscardCombine(Object* source, Object* destination);
+ObjectCombinationResult DiscardCombine(Object* source, Object* destination);
 bool DiscardFlippable(const Object* object);
 void DiscardFlip(Object* object);
 void DiscardHandlePickup(Object* object);

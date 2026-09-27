@@ -58,12 +58,12 @@ Rectangle ObjectRect(const Object* object)
 	return ((object_rect)func)(object);
 }
 
-typedef bool (*object_combine)(Object*, Object*);
+typedef ObjectCombinationResult (*object_combine)(Object*, Object*);
 /// Returns true if the combine deletes the source object, false if the source object should be returned to it's last position
-bool ObjectCombine(Object* source, Object* destination)
+ObjectCombinationResult ObjectCombine(Object* source, Object* destination)
 {
 	funcPtr func = vtable[source->type][PurposeCombine];
-	if (!func) return false;
+	if (!func) return (ObjectCombinationResult){0};
 
 	return ((object_combine)func)(source, destination);
 }
