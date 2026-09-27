@@ -20,6 +20,7 @@ static bool drawDeckTest;
 static bool drawObjectHitboxes;
 static bool drawCardsSmall;
 static bool showObjectStack;
+static bool showOneToOneStacks;
 static bool useVSync;
 
 // This style of bool (disposed after use) is an annoying enough pattern (static bool, bool function, prototype in
@@ -56,6 +57,11 @@ bool DebugDrawCardsSmall(void)
 bool DebugShowObjectStack(void)
 {
 	return showObjectStack;
+}
+
+bool DebugShowOneToOneStacks(void)
+{
+	return showOneToOneStacks;
 }
 
 bool DebugSpawnFactoryDeck(void)
@@ -212,10 +218,8 @@ void DebugMenuDraw(void)
             SetTargetFPS(TARGET_FPS);
 		}
 	}
-	if (GuiCheckBox(NextCheckboxRec(), "Use Small Cards", &drawCardsSmall))
-	{
-
-	}
+	GuiCheckBox(NextCheckboxRec(), "Use Small Cards", &drawCardsSmall);
+	GuiCheckBox(NextCheckboxRec(), "Show 1:1 Stacks", &showOneToOneStacks);
 }
 
 void DebugMenuSetScaling(int scale)

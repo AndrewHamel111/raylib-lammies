@@ -23,6 +23,11 @@ Object* ObjectCreateDiscard(Vector2 position)
 	return object;
 }
 
+static float DiscardStackOffset(void)
+{
+	return DebugShowOneToOneStacks() ? 1.0f : DISCARD_STACK_OFFSET;
+}
+
 static void ObjectDiscardDrawInternal(const Object* object, bool shadowed, Color highlight)
 {
 	if (object->type != ObjectDiscard)
@@ -34,7 +39,7 @@ static void ObjectDiscardDrawInternal(const Object* object, bool shadowed, Color
 	// TODO: implement highlight
 
 	int stackHeight = ObjectDiscardStackHeight(object);
-	float offset = DISCARD_STACK_OFFSET;
+	float offset = DiscardStackOffset();
 	const Deck* deck = &object->data.discard.deck;
 
 	Vector2 position = object->_position;
@@ -61,7 +66,7 @@ static void ObjectDiscardDrawInternal(const Object* object, bool shadowed, Color
 			{
 				Vector2 cardSize = DebugDrawCardsSmall() ? CARD_SIZE_SMALL : CARD_SIZE;
 				rlTranslatef(position.x + cardSize.x / 2, position.y + cardSize.y / 2, 0);
-				rlRotatef(card_rotations[i], 0, 0, 1);
+				rlRotatef(card_rotations[i % 12], 0, 0, 1);
 				rlTranslatef(-cardSize.x / 2, -cardSize.y / 2, 0);
 
 				Rectangle dest = RectangleInflate(R(0, 0, cardSize.x, cardSize.y), CARD_HIGHLIGHT_EXTENT);
@@ -73,11 +78,11 @@ static void ObjectDiscardDrawInternal(const Object* object, bool shadowed, Color
 		if (object->data.discard._faceUp)
 		{
 			int value = (int)deck->arr[deck->count - stackHeight];
-			CardDrawCustom(position, value, card_rotations[i], BLANK);
+			CardDrawCustom(position, value, card_rotations[i % 12], BLANK);
 		}
 		else
 		{
-			CardDrawBack(position, card_rotations[i], BLANK);
+			CardDrawBack(position, card_rotations[i % 12], BLANK);
 		}
 		i++;
 		position.y -= offset;
@@ -98,7 +103,7 @@ void DiscardDraw(const Object* object)
 Rectangle DiscardRect(Object* object)
 {
 	Vector2 sz = DebugDrawCardsSmall() ? CARD_SIZE_SMALL : CARD_SIZE;
-	float yOff = (float)(ObjectDiscardStackHeight(object) - 1) * DISCARD_STACK_OFFSET;
+	float yOff = (float)(ObjectDiscardStackHeight(object) - 1) * DiscardStackOffset();
 	return R(object->_position.x, object->_position.y - yOff, sz.x, sz.y + yOff);
 }
 
@@ -259,7 +264,7 @@ int ObjectDiscardStackHeight(const Object* object)
 		return true;
 	}
 
-	return CLAMPf(object->data.discard.deck.count, 1, 12);
+	return DebugShowOneToOneStacks() ? object->data.discard.deck.count : CLAMPf(object->data.discard.deck.count, 1, 12);
 }
 
 Object* ObjectDiscardPop(Object* object)

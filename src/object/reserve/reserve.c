@@ -18,6 +18,11 @@ Object* ObjectCreateReserve(Vector2 position)
 	return object;
 }
 
+static float ReserveStackOffset(void)
+{
+	return DebugShowOneToOneStacks() ? 1.0f : RESERVE_STACK_OFFSET;
+}
+
 static void ObjectReserveDrawInternal(const Object* object, bool shadowed, Color highlight)
 {
 	if (object->type != ObjectReserve)
@@ -28,7 +33,7 @@ static void ObjectReserveDrawInternal(const Object* object, bool shadowed, Color
 
 	// TODO: implement highlight
 	int stackHeight = 1;
-	float offset = RESERVE_STACK_OFFSET;
+	float offset = ReserveStackOffset();
 
 	bool small = DebugDrawCardsSmall();
 	Vector2 cardSize = small ? CARD_SIZE_SMALL : CARD_SIZE;
@@ -84,7 +89,7 @@ void ReserveDraw(const Object* object)
 Rectangle ReserveRect(Object* object)
 {
 	Vector2 sz = DebugDrawCardsSmall() ? CARD_SIZE_SMALL : CARD_SIZE;
-	float yOff = (float)(ObjectReserveStackHeight(object) - 1) * RESERVE_STACK_OFFSET;
+	float yOff = (float)(ObjectReserveStackHeight(object) - 1) * ReserveStackOffset();
 	return R(object->_position.x, object->_position.y - yOff, sz.x, sz.y + yOff);
 }
 
@@ -253,7 +258,7 @@ int ObjectReserveStackHeight(const Object* object)
 		return -1;
 	}
 
-	return CLAMPf(object->data.reserve.deck.count, 1, 4);
+	return DebugShowOneToOneStacks() ? object->data.reserve.deck.count : CLAMPf(object->data.reserve.deck.count, 1, 4);
 }
 
 Object* ObjectReservePop(Object* object)

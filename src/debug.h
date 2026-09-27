@@ -6,6 +6,7 @@ bool DebugExampleBool(void);
 bool DebugDrawObjectHitboxes(void);
 bool DebugDrawCardsSmall(void);
 bool DebugShowObjectStack(void);
+bool DebugShowOneToOneStacks(void);
 
 // I would prefer if the naming convention communicated it was a Discarded value (set to false after calling once)
 bool DebugSpawnFactoryDeck(void);
