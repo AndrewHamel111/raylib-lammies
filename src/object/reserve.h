@@ -11,6 +11,7 @@ void ReserveFlip(Object* object);
 void ReserveHandlePickup(Object* object);
 void ReserveHandleDrop(Object* object);
 ObjectInteractionResult ReserveHandleInput(Object* object, Input input);
+void ReserveHandlePicked(Object* object, bool picked);
 
 bool ObjectReserveFull(const Object* object);
 int ObjectReserveStackHeight(const Object* object);

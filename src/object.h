@@ -37,11 +37,13 @@ typedef struct Object
 		{
 			Deck deck;
 			bool _faceUp;
+			int scrollIndex;
 		} reserve;
 		struct
 		{
 			Deck deck;
 			bool _faceUp;
+			int scrollIndex;
 		} discard;
 //		struct
 //		{
@@ -60,7 +62,7 @@ typedef struct Object
 
 typedef enum ObjectInteractionResultType
 {
-	OIR_None,
+	OIR_None = 0,
 	OIR_ObjectCreated,
 	OIR_ObjectCreatedToHold,
 	OIR_HeldObjectDestroyed,
@@ -97,6 +99,7 @@ void ObjectFlip(Object* object);
 void ObjectHandlePickup(Object* object);
 void ObjectHandleDrop(Object* object);
 ObjectInteractionResult ObjectHandleInput(Object* object, Input input);
+void ObjectHandlePicked(Object* object, bool picked);
 
 void ObjectSetDrawHighlight(Color highlight);
 void ObjectSetDrawShadowed(void);

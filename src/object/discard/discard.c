@@ -60,12 +60,38 @@ static void ObjectDiscardDrawInternal(const Object* object, bool shadowed, Color
 	int i = 0;
 	while (stackHeight > 0)
 	{
-		if (stackHeight == 1 && drawHighlight)
+		Vector2 cardPosition = position;
+		cardPosition.y -= offset * (float)i;
+
+		int deckIndex = stackHeight - 1;
+		if (DebugShowOneToOneStacks() && deckIndex == object->data.discard.scrollIndex
+			&& object->data.discard.scrollIndex != 0)
+		{
+			cardPosition.y -= DISCARD_SCROLL_OFFSET;
+
+			if (drawHighlight)
+			{
+				rlPushMatrix();
+				{
+					Vector2 cardSize = DebugDrawCardsSmall() ? CARD_SIZE_SMALL : CARD_SIZE;
+					rlTranslatef(cardPosition.x + cardSize.x / 2, cardPosition.y + cardSize.y / 2, 0);
+					rlRotatef(card_rotations[i % 12], 0, 0, 1);
+					rlTranslatef(-cardSize.x / 2, -cardSize.y / 2, 0);
+
+					Rectangle dest = RectangleInflate(R(0, 0, cardSize.x, cardSize.y), CARD_HIGHLIGHT_EXTENT);
+					DrawRectangleRounded(dest, CARD_SHADOW_ROUNDNESS, CARD_SHADOW_SEGMENTS, highlight);
+				}
+				rlPopMatrix();
+			}
+
+			DrawText(TextFormat("%d/%d", object->data.discard.scrollIndex + 1, object->data.discard.deck.count), (int)cardPosition.x, (int)cardPosition.y - 24, 16, BLACK);
+		}
+		else if (stackHeight == 1 && drawHighlight && (!DebugShowOneToOneStacks() || object->data.discard.scrollIndex == 0))
 		{
 			rlPushMatrix();
 			{
 				Vector2 cardSize = DebugDrawCardsSmall() ? CARD_SIZE_SMALL : CARD_SIZE;
-				rlTranslatef(position.x + cardSize.x / 2, position.y + cardSize.y / 2, 0);
+				rlTranslatef(cardPosition.x + cardSize.x / 2, cardPosition.y + cardSize.y / 2, 0);
 				rlRotatef(card_rotations[i % 12], 0, 0, 1);
 				rlTranslatef(-cardSize.x / 2, -cardSize.y / 2, 0);
 
@@ -78,14 +104,13 @@ static void ObjectDiscardDrawInternal(const Object* object, bool shadowed, Color
 		if (object->data.discard._faceUp)
 		{
 			int value = (int)deck->arr[deck->count - stackHeight];
-			CardDrawCustom(position, value, card_rotations[i % 12], BLANK);
+			CardDrawCustom(cardPosition, value, card_rotations[i % 12], BLANK);
 		}
 		else
 		{
-			CardDrawBack(position, card_rotations[i % 12], BLANK);
+			CardDrawBack(cardPosition, card_rotations[i % 12], BLANK);
 		}
 		i++;
-		position.y -= offset;
 		stackHeight--;
 	}
 }
@@ -203,16 +228,18 @@ void DiscardHandleDrop(Object* object)
 {
 	// stub
 	// TODO: likely to be used for animation
+	object->data.discard.scrollIndex = 0;
 }
 
 ObjectInteractionResult DiscardHandleInput(Object* object, Input input)
 {
+	ObjectInteractionResult result = {0};
+
 	switch (input)
 	{
 		case InputPrimary:
 			if (object->_held)
 			{
-				ObjectInteractionResult result = {0};
 				result.type = OIR_ObjectCreated;
 				result.object = ObjectDiscardPop(object);
 
@@ -225,23 +252,41 @@ ObjectInteractionResult DiscardHandleInput(Object* object, Input input)
 				{
 					result.type = OIR_HeldObjectDestroyed;
 				}
-
-				return result;
 			}
 			else
 			{
-				ObjectInteractionResult result = {0};
 				result.type = OIR_ObjectCreatedToHold;
 				result.object = ObjectDiscardPop(object);
-
-				return result;
 			}
+			break;
 		case InputSecondary:
 			// Should I be called ObjectFlip here? or is that unneeded indirection?
 			DiscardFlip(object);
+			break;
+		case InputScrollDown:
+			if (object->data.reserve.scrollIndex < object->data.reserve.deck.count - 1)
+			{
+				object->data.reserve.scrollIndex++;
+			}
+			break;
+		case InputScrollUp:
+			if (object->data.reserve.scrollIndex > 0)
+			{
+				object->data.reserve.scrollIndex--;
+			}
+			break;
 		default:
 			break;
 	}
+
+	return result;
+}
+
+void DiscardHandlePicked(Object* object, bool picked)
+{
+	if (picked) return;
+
+	object->data.discard.scrollIndex = 0;
 }
 
 bool ObjectDiscardFull(const Object* object)
@@ -278,11 +323,26 @@ Object* ObjectDiscardPop(Object* object)
 	Deck* deck = &(object->data.discard.deck);
 
 	// TODO redefine card.value type as CardValue defined in utility/types to avoid uint / int narrowing?
-	Object* card = ObjectCreateCard(object->_position, DrawNewCardValue(deck));
+//	Object* card = ObjectCreateCard(object->_position, DrawNewCardValue(deck));
+	uint value = DebugShowOneToOneStacks() ? DrawFrom(deck, deck->count - 1 - object->data.discard.scrollIndex)
+										   : DrawNewCardValue(deck);
+	Object* card = ObjectCreateCard(object->_position, (int)value);
 
 	card->_position = object->_position;
 	card->data.card._animationState = CardStateDefault;
 	card->data.card._faceUp = object->data.discard._faceUp;
+
+	if (DebugShowOneToOneStacks())
+	{
+		if (object->_held)
+		{
+			object->data.discard.scrollIndex--;
+		}
+		else
+		{
+			object->data.discard.scrollIndex = 0;
+		}
+	}
 
 	// Destroy discard if the last card is popped
 	if (GetDeckCount(deck) == 0)

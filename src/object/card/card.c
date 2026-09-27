@@ -260,6 +260,11 @@ ObjectInteractionResult CardHandleInput(Object* object, Input input)
 	}
 }
 
+void CardHandlePicked(Object* object, bool picked)
+{
+	// do nothing
+}
+
 Suit CardSuit(const Object* card)
 {
 	return GetSuit(card->data.card.value);

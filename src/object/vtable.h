@@ -13,6 +13,7 @@ typedef enum Purpose
 	PurposeHandlePickup,
 	PurposeHandleDrop,
 	PurposeHandleInput,
+	PurposeHandlePicked,
 	PurposeCount
 } Purpose;
 

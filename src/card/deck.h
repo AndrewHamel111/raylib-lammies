@@ -21,6 +21,7 @@ typedef struct Deck
 void InitDeck(Deck* deck);
 
 uint DrawNewCardValue(Deck* deck);
+uint DrawFrom(Deck* deck, int index);
 void ReturnCard(Deck* deck, int value);
 void ReturnCardTo(Deck* deck, int value, DeckLocation where);
 void Shuffle(Deck* deck);

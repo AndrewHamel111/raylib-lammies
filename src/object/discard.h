@@ -11,6 +11,7 @@ void DiscardFlip(Object* object);
 void DiscardHandlePickup(Object* object);
 void DiscardHandleDrop(Object* object);
 ObjectInteractionResult DiscardHandleInput(Object* object, Input input);
+void DiscardHandlePicked(Object* object, bool picked);
 
 bool ObjectDiscardFull(const Object* object);
 int ObjectDiscardStackHeight(const Object* object);

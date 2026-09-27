@@ -60,7 +60,26 @@ static void ObjectReserveDrawInternal(const Object* object, bool shadowed, Color
 
 	while (stackHeight > 0)
 	{
-		if (stackHeight == 1 && object->data.reserve._faceUp)
+		int deckIndex = stackHeight - 1;
+		if (DebugShowOneToOneStacks() && deckIndex == object->data.reserve.scrollIndex
+			&& object->data.reserve.scrollIndex != 0)
+		{
+			Rectangle altDest = dest;
+			altDest.y -= RESERVE_SCROLL_OFFSET;
+			const Deck* deck = &object->data.reserve.deck;
+			if (object->data.reserve._faceUp)
+			{
+				int value = (int)deck->arr[deck->count - 1 - object->data.reserve.scrollIndex];
+				Texture2D texAlt = GetCardValue(value, small);
+				DrawTexturePro(texAlt, src, altDest, V(0,0), 0.0f, WHITE);
+			}
+			else
+			{
+				DrawTexturePro(tex, src, altDest, V(0,0), 0.0f, WHITE);
+			}
+			DrawText(TextFormat("%d/%d", object->data.reserve.scrollIndex + 1, object->data.reserve.deck.count), (int)altDest.x, (int)altDest.y - 16, 16, BLACK);
+		}
+		else if (stackHeight == 1 && object->data.reserve._faceUp)
 		{
 			int value = (int)object->data.reserve.deck.arr[object->data.reserve.deck.count - 1];
 			Texture2D texAlt = GetCardValue(value, small);
@@ -188,16 +207,17 @@ void ReserveHandleDrop(Object* object)
 {
 	// stub
 	// TODO: likely to be used for animation
+	object->data.reserve.scrollIndex = 0;
 }
 
 ObjectInteractionResult ReserveHandleInput(Object* object, Input input)
 {
+	ObjectInteractionResult result = {0};
 	switch (input)
 	{
 		case InputPrimary:
 			if (object->_held)
 			{
-				ObjectInteractionResult result = {0};
 				result.type = OIR_ObjectCreated;
 				result.object = ObjectReservePop(object);
 
@@ -210,23 +230,40 @@ ObjectInteractionResult ReserveHandleInput(Object* object, Input input)
 				{
 					result.type = OIR_HeldObjectDestroyed;
 				}
-
-				return result;
 			}
 			else
 			{
-				ObjectInteractionResult result = {0};
 				result.type = OIR_ObjectCreatedToHold;
 				result.object = ObjectReservePop(object);
-
-				return result;
 			}
+			break;
 		case InputSecondary:
 			// Should I be called ObjectFlip here? or is that unneeded indirection?
 			ReserveFlip(object);
+			break;
+		case InputScrollDown:
+			if (object->data.reserve.scrollIndex < object->data.reserve.deck.count - 1)
+			{
+				object->data.reserve.scrollIndex++;
+			}
+			break;
+		case InputScrollUp:
+			if (object->data.reserve.scrollIndex > 0)
+			{
+				object->data.reserve.scrollIndex--;
+			}
+			break;
 		default:
 			break;
 	}
+	return result;
+}
+
+void ReserveHandlePicked(Object* object, bool picked)
+{
+	if (picked) return;
+
+	object->data.reserve.scrollIndex = 0;
 }
 
 void ObjectReserveDrawShadowed(const Object* object)
@@ -272,11 +309,25 @@ Object* ObjectReservePop(Object* object)
 	Deck* deck = &(object->data.reserve.deck);
 
 	// TODO redefine card.value type as CardValue defined in utility/types to avoid uint / int narrowing?
-	Object* card = ObjectCreateCard(object->_position, DrawNewCardValue(deck));
+	uint value = DebugShowOneToOneStacks() ? DrawFrom(deck, deck->count - 1 - object->data.reserve.scrollIndex)
+			: DrawNewCardValue(deck);
+	Object* card = ObjectCreateCard(object->_position, (int)value);
 
 	card->_position = object->_position;
 	card->data.card._animationState = CardStateDefault;
 	card->data.card._faceUp = object->data.reserve._faceUp;
+
+	if (DebugShowOneToOneStacks())
+	{
+		if (object->_held)
+		{
+			object->data.reserve.scrollIndex--;
+		}
+		else
+		{
+			object->data.reserve.scrollIndex = 0;
+		}
+	}
 
 	// Destroy reserve if the last card is popped
 	if (GetDeckCount(deck) == 0)

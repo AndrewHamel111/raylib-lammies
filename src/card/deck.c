@@ -22,6 +22,20 @@ uint DrawNewCardValue(Deck* deck)
 	return top;
 }
 
+uint DrawFrom(Deck* deck, int index)
+{
+	if (index < 0 || index >= deck->count)
+	{
+		TraceLog(LOG_WARNING, "Deck::DrawFrom called with invalid index!");
+	}
+
+	uint value = deck->arr[index];
+	memmove(deck->arr + index, deck->arr + index + 1, sizeof(uint) * (deck->count - index - 1));
+	deck->count--;
+
+	return value;
+}
+
 void ReturnCard(Deck* deck, int value)
 {
 	ReturnCardTo(deck, value, DeckAnywhere);

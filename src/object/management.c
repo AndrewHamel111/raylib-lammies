@@ -11,7 +11,7 @@ int objects_count = 0;
 static int next_id = 1;
 
 static Object* held_object = NULL;
-static const Object* picked_object = NULL;
+static Object* picked_object = NULL;
 
 Object* ObjectConstruct(void)
 {
@@ -162,8 +162,19 @@ void ObjectSetHeld(Object* object)
 	}
 }
 
-void ObjectSetPicked(const Object* object)
+void ObjectSetPicked(Object* object)
 {
+	if (object != picked_object)
+	{
+		if (picked_object != NULL)
+		{
+			ObjectHandlePicked(picked_object, false);
+		}
+		if (object != NULL)
+		{
+			ObjectHandlePicked(object, true);
+		}
+	}
 	picked_object = object;
 }
 

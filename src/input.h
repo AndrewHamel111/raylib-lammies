@@ -7,6 +7,8 @@ typedef enum Input
 	InputNone = 0,
 	InputPrimary = 1,
 	InputSecondary,
+	InputScrollUp,
+	InputScrollDown,
 	InputCount
 } Input;
 

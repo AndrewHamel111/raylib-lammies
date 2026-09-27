@@ -20,7 +20,7 @@ static bool drawDeckTest;
 static bool drawObjectHitboxes;
 static bool drawCardsSmall;
 static bool showObjectStack;
-static bool showOneToOneStacks;
+static bool showOneToOneStacks = true;
 static bool useVSync;
 
 // This style of bool (disposed after use) is an annoying enough pattern (static bool, bool function, prototype in
