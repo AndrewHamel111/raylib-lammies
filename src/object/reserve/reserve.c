@@ -319,7 +319,7 @@ Object* ObjectReservePop(Object* object)
 
 	if (DebugShowOneToOneStacks())
 	{
-		if (object->_held)
+		if (object->_held && object->data.reserve.scrollIndex > 0)
 		{
 			object->data.reserve.scrollIndex--;
 		}

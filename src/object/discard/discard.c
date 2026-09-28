@@ -334,7 +334,7 @@ Object* ObjectDiscardPop(Object* object)
 
 	if (DebugShowOneToOneStacks())
 	{
-		if (object->_held)
+		if (object->_held && object->data.discard.scrollIndex > 0)
 		{
 			object->data.discard.scrollIndex--;
 		}

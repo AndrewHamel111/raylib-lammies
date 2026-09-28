@@ -113,7 +113,7 @@ ObjectInteractionResult ObjectHandleInput(Object* object, Input input)
 	return ((object_handle_input)func)(object, input);
 }
 
-typedef ObjectInteractionResult (*object_handle_picked)(Object*, bool);
+typedef void (*object_handle_picked)(Object*, bool);
 void ObjectHandlePicked(Object* object, bool picked)
 {
 	funcPtr func = vtable[object->type][PurposeHandlePicked];
