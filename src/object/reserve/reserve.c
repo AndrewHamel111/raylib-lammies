@@ -263,7 +263,10 @@ void ReserveHandlePicked(Object* object, bool picked)
 {
 	if (picked) return;
 
-	object->data.reserve.scrollIndex = 0;
+    if (!object->_held)
+    {
+	    object->data.reserve.scrollIndex = 0;
+    }
 }
 
 void ObjectReserveDrawShadowed(const Object* object)
@@ -319,14 +322,14 @@ Object* ObjectReservePop(Object* object)
 
 	if (DebugShowOneToOneStacks())
 	{
-		if (object->_held && object->data.reserve.scrollIndex > 0)
+		if (object->_held && object->data.reserve.scrollIndex == object->data.reserve.deck.count)
 		{
 			object->data.reserve.scrollIndex--;
 		}
-		else
-		{
-			object->data.reserve.scrollIndex = 0;
-		}
+//		else
+//		{
+//			object->data.reserve.scrollIndex = 0;
+//		}
 	}
 
 	// Destroy reserve if the last card is popped

@@ -286,7 +286,10 @@ void DiscardHandlePicked(Object* object, bool picked)
 {
 	if (picked) return;
 
-	object->data.discard.scrollIndex = 0;
+    if (!object->_held)
+    {
+	    object->data.discard.scrollIndex = 0;
+    }
 }
 
 bool ObjectDiscardFull(const Object* object)
@@ -334,13 +337,9 @@ Object* ObjectDiscardPop(Object* object)
 
 	if (DebugShowOneToOneStacks())
 	{
-		if (object->_held && object->data.discard.scrollIndex > 0)
+        if (object->_held && object->data.discard.scrollIndex == object->data.discard.deck.count)
 		{
 			object->data.discard.scrollIndex--;
-		}
-		else
-		{
-			object->data.discard.scrollIndex = 0;
 		}
 	}
 
