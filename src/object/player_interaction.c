@@ -67,7 +67,7 @@ void PlayerInteractionUpdate(float ft)
 	if (picked_object && !held_object && (tryingPickup || tryingSweep))
 	{
 		Rectangle objectRec = ObjectRect(picked_object);
-		// TODO: add debug option to toggle this "require right side" condition"
+		// TODO: add debug option to toggle this "require right side" condition
 		bool rightSide = curPos.x > (picked_object->_position.x + (objectRec.width * 0.2f));
 		if (!picked_object->_locked && rightSide)
 		{
@@ -76,6 +76,7 @@ void PlayerInteractionUpdate(float ft)
 			offset = Vector2Subtract(picked_object->_position, offset);
 
 			HoldObjectCustomOffset(MoveObjectToTop(picked_object), HoldPalm, offset);
+			CursorSetHeight(CursorHeightObject);
 		}
 	}
 	else if (cardSpecialCase && !held_object)
@@ -177,10 +178,12 @@ void PlayerInteractionUpdate(float ft)
 			if (InputIs(InputPrimary, InputHeld))
 			{
 				CursorSetState(CursorPalmSweep);
+				CursorSetHeight(CursorHeightTable);
 			}
 			else
 			{
 				CursorSetState(CursorPalm);
+				CursorSetHeight(CursorHeightTable);
 			}
 		}
 		else if (InputIs(InputPrimary, InputPressed))
@@ -188,23 +191,32 @@ void PlayerInteractionUpdate(float ft)
 			if (CursorGetState() == CursorPalm)
 			{
 				CursorSetState(CursorPalmSweep);
+				CursorSetHeight(CursorHeightTable);
 			}
 		}
 		else if (InputIs(InputSecondary, InputReleased))
 		{
 			CursorSetState(CursorDefault);
+			CursorSetHeight(CursorHeightTop);
 		}
 		else if (InputIs(InputPrimary, InputReleased))
 		{
 			if (CursorGetState() == CursorPalmSweep)
 			{
 				CursorSetState(CursorPalm);
+				CursorSetHeight(CursorHeightTable);
 			}
 		}
-		else if (picked_object)
+		else if (picked_object && !held_object)
 		{
 			CursorSetState(CursorPick);
+			CursorSetHeight(CursorHeightTop);
 		}
+		else if (!picked_object && !held_object && !tryingPickup && !tryingSweep)
+		{
+			CursorSetState(CursorDefault);
+		}
+
 	}
 
 	if (held_object)
