@@ -240,9 +240,11 @@ void PlayerInteractionUpdate(float ft)
 	else if (picked_object)
 	{
 		Input actionInput = InputGetObjectAction();
-		if (actionInput != InputNone && current_action_list.count > 0)
+		int actionIndex = InputObjectActionToNum(actionInput);
+		int desiredAction = current_action_list.actions[actionIndex];
+		if (actionInput != InputNone && current_action_list.count > 0 && desiredAction != OA_None)
 		{
-			ObjectHandleAction(picked_object, current_action_list.actions[InputObjectActionToNum(actionInput)]);
+			ObjectHandleAction(picked_object, desiredAction);
 		}
 	}
 
