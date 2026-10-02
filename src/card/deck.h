@@ -30,3 +30,5 @@ void DeckReverse(Deck* deck);
 int GetDeckCount(const Deck* deck);
 int GetDeckMax(const Deck* deck);
 bool DeckIsFull(const Deck* deck);
+
+void DeckMove(Deck* dest, Deck* source);

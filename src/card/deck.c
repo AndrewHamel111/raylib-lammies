@@ -148,3 +148,10 @@ bool DeckIsFull(const Deck* deck)
 {
 	return deck->count == GetDeckMax(deck);
 }
+
+void DeckMove(Deck* dest, Deck* source)
+{
+	// TODO: if CardValue replaces uint in Deck, update this!
+	memmove(dest->arr, source->arr, sizeof(uint) * source->count);
+	dest->count = source->count;
+}

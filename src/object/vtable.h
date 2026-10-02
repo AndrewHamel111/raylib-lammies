@@ -14,6 +14,8 @@ typedef enum Purpose
 	PurposeHandleDrop,
 	PurposeHandleInput,
 	PurposeHandlePicked,
+	PurposeGetActions,
+	PurposeHandleAction,
 	PurposeCount
 } Purpose;
 

@@ -62,6 +62,35 @@ void GameLoop(void)
 			CursorDraw();
 		}
 
+		ObjectActionList actions = GetCurrentActionList();
+//		const int boxWidth = 800;
+		const int lineHeight = 60;
+		const int linePad = 10;
+		const int actionFontSize = lineHeight - linePad;
+		if (actions.count > 0)
+		{
+			const char* textLines[4]; // see MAX_TEXTFORMAT_BUFFERS in rtext.c
+			textLines[0] = TextFormat("1 - %s", ObjectActionName(actions.actions[0]));
+			textLines[1] = TextFormat("2 - %s", ObjectActionName(actions.actions[1]));
+			textLines[2] = TextFormat("3 - %s", ObjectActionName(actions.actions[2]));
+			textLines[3] = TextFormat("4 - %s", ObjectActionName(actions.actions[3]));
+
+			int boxWidth = 75 + (MAX(MeasureText(textLines[0], actionFontSize),
+								 MAX(MeasureText(textLines[1], actionFontSize),
+								 MAX(MeasureText(textLines[2], actionFontSize),
+								 MeasureText(textLines[3], actionFontSize)))));
+
+			int boxHeight = lineHeight * actions.count + linePad;
+			DrawRectangle(0, GetScreenHeight() - boxHeight, boxWidth, boxHeight, Fade(BLACK, 0.3f));
+
+			for (int i = actions.count - 1; i >= 0; i--)
+			{
+				int textY = GetScreenHeight() - (lineHeight * (actions.count - i));
+				const char* text = TextFormat("%d - %s", i + 1, ObjectActionName(actions.actions[i]));
+				DrawText(text, 50, textY, lineHeight - linePad, BLACK);
+			}
+		}
+
 		if (DebugShowObjectStack())
 		{
 			float fontSize = 32;

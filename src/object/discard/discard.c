@@ -292,6 +292,45 @@ void DiscardHandlePicked(Object* object, bool picked)
     }
 }
 
+ObjectActionList DiscardGetActions(const Object* object)
+{
+	ObjectActionList result = (ObjectActionList){0};
+	result.actions[0] = object->_locked ? OA_None : OA_ConvertToReserve;
+	result.actions[2] = object->_locked ? OA_None : OA_Shuffle;
+	result.actions[3] = object->_locked ? OA_Unlock : OA_Lock;
+	result.count = 4;
+	return result;
+}
+
+void DiscardHandleAction(Object* object, ObjectAction action)
+{
+	if (object->_locked && action != OA_Unlock) return;
+
+	switch (action)
+	{
+		case OA_ConvertToReserve:
+		{
+			Object* reserve = ObjectCreateReserve(object->_position);
+			reserve->data.reserve._faceUp = object->data.discard._faceUp;
+			DeckMove(&reserve->data.reserve.deck, &object->data.discard.deck);
+			ObjectFree(object);
+			break;
+		}
+		case OA_Shuffle:
+			Shuffle(&object->data.discard.deck);
+			break;
+		case OA_Lock:
+			object->_locked = true;
+			break;
+		case OA_Unlock:
+			object->_locked = false;
+			break;
+		default:
+			TraceLog(LOG_WARNING, TextFormat("DiscardHandleAction: unhandled ObjectAction %d", action));
+			break;
+	}
+}
+
 bool ObjectDiscardFull(const Object* object)
 {
 	if (object->type != ObjectDiscard)

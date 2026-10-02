@@ -9,6 +9,7 @@
 #include "input.h"
 
 static Object* picked_object = NULL;
+static ObjectActionList current_action_list = {0};
 
 static Object* held_object = NULL;
 static Vector2 held_object_offset = {0};
@@ -24,6 +25,20 @@ typedef enum HoldMode
 static HoldMode hold_mode = HoldPick;
 
 static bool trying_pickup = false;
+
+ObjectActionList GetCurrentActionList(void)
+{
+	return current_action_list;
+}
+
+static void PickObject(Object* object)
+{
+	picked_object = object;
+
+	ObjectSetPicked(object);
+
+	current_action_list = object ? ObjectGetActions(object) : (ObjectActionList){0};
+}
 
 static void HoldObjectCustomOffset(Object* object, HoldMode mode, Vector2 offset)
 {
@@ -50,8 +65,7 @@ void PlayerInteractionUpdate(float ft)
 
 	// new impl, not tested
 
-	picked_object = MousePickObjectExcluding(curPos, held_object);
-	ObjectSetPicked(picked_object);
+	PickObject(MousePickObjectExcluding(curPos, held_object));
 	Input input = InputGetPressed();
 
 	// TODO: do we need more object flags? i.e. coins, tokens, "the bus" train in dominoes, these would be single click
@@ -64,12 +78,12 @@ void PlayerInteractionUpdate(float ft)
 	bool tryingPickup = CursorGetState() == CursorPalm;
 	bool tryingSweep = CursorGetState() == CursorPalmSweep;
 
-	if (picked_object && !held_object && (tryingPickup || tryingSweep))
+	if (picked_object && !picked_object->_locked && !held_object && (tryingPickup || tryingSweep))
 	{
 		Rectangle objectRec = ObjectRect(picked_object);
 		// TODO: add debug option to toggle this "require right side" condition
 		bool rightSide = curPos.x > (picked_object->_position.x + (objectRec.width * 0.2f));
-		if (!picked_object->_locked && rightSide)
+		if (rightSide)
 		{
 			Vector2 offset = curPos;
 			offset.x = picked_object->_position.x + objectRec.width - OBJECT_HOLD_OFFSET;
@@ -207,7 +221,7 @@ void PlayerInteractionUpdate(float ft)
 				CursorSetHeight(CursorHeightTable);
 			}
 		}
-		else if (picked_object && !held_object)
+		else if (picked_object && !held_object && !tryingPickup && !tryingSweep)
 		{
 			CursorSetState(CursorPick);
 			CursorSetHeight(CursorHeightTop);
@@ -222,6 +236,14 @@ void PlayerInteractionUpdate(float ft)
 	if (held_object)
 	{
 		held_object->_position = Vector2Add(curPos, held_object_offset);
+	}
+	else if (picked_object)
+	{
+		Input actionInput = InputGetObjectAction();
+		if (actionInput != InputNone && current_action_list.count > 0)
+		{
+			ObjectHandleAction(picked_object, current_action_list.actions[InputObjectActionToNum(actionInput)]);
+		}
 	}
 
 	// DEBUG

@@ -12,6 +12,8 @@ void DiscardHandlePickup(Object* object);
 void DiscardHandleDrop(Object* object);
 ObjectInteractionResult DiscardHandleInput(Object* object, Input input);
 void DiscardHandlePicked(Object* object, bool picked);
+ObjectActionList DiscardGetActions(const Object* object);
+void DiscardHandleAction(Object* object, ObjectAction action);
 
 bool ObjectDiscardFull(const Object* object);
 int ObjectDiscardStackHeight(const Object* object);

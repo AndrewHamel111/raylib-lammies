@@ -265,6 +265,17 @@ void CardHandlePicked(Object* object, bool picked)
 	// do nothing
 }
 
+ObjectActionList CardGetActions(const Object* object)
+{
+	ObjectActionList result = {0};
+	return result;
+}
+
+void CardHandleAction(Object* object, ObjectAction action)
+{
+	// do nothing
+}
+
 Suit CardSuit(const Object* card)
 {
 	return GetSuit(card->data.card.value);

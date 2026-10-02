@@ -9,6 +9,7 @@ void ObjectFree(const Object* object);
 Object* ObjectGet(int id);
 Object* ObjectsGet(int* count);
 Object** ObjectsGetOrdered(int* count);
+ObjectActionList GetCurrentActionList(void);
 
 void ObjectsTick(float ft);
 void ObjectsDraw(void);

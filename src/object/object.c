@@ -27,3 +27,22 @@ bool ObjectGetDrawShadowed(void)
 	next_draw_shadowed = false;
 	return value;
 }
+
+const char* ObjectActionName(ObjectAction action)
+{
+	switch (action)
+	{
+		case OA_None:
+			return "";
+		case OA_ConvertToReserve:
+			return "Convert to Reserve";
+		case OA_Shuffle:
+			return "Shuffle";
+		case OA_Lock:
+			return "Lock";
+		case OA_Unlock:
+			return "Unlock";
+		case OA_Count:
+			return "Count";
+	}
+}

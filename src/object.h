@@ -23,6 +23,23 @@ typedef enum ObjectType
 	ObjectTypeCount,
 } ObjectType;
 
+typedef enum ObjectAction
+{
+	OA_None = 0,
+	OA_ConvertToReserve,
+//	OA_ConvertToMeld,
+	OA_Shuffle,
+	OA_Lock,
+	OA_Unlock,
+	OA_Count
+} ObjectAction;
+
+typedef struct ObjectActionList
+{
+	ObjectAction actions[OA_Count];
+	int count;
+} ObjectActionList;
+
 typedef struct Object
 {
 	Vector2 _position;
@@ -100,6 +117,8 @@ void ObjectHandlePickup(Object* object);
 void ObjectHandleDrop(Object* object);
 ObjectInteractionResult ObjectHandleInput(Object* object, Input input);
 void ObjectHandlePicked(Object* object, bool picked);
+ObjectActionList ObjectGetActions(const Object* object);
+void ObjectHandleAction(Object* object, ObjectAction action);
 
 void ObjectSetDrawHighlight(Color highlight);
 void ObjectSetDrawShadowed(void);
@@ -112,3 +131,4 @@ Object* ObjectCreateReserve(Vector2 position);
 Object* ObjectCreateDiscard(Vector2 position);
 Object* ObjectCreateCard(Vector2 position, int value);
 
+const char* ObjectActionName(ObjectAction action);

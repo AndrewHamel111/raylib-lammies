@@ -40,6 +40,8 @@ void CardHandlePickup(Object* object);
 void CardHandleDrop(Object* object);
 ObjectInteractionResult CardHandleInput(Object* object, Input input);
 void CardHandlePicked(Object* object, bool picked);
+ObjectActionList CardGetActions(const Object* object);
+void CardHandleAction(Object* object, ObjectAction action);
 
 void CardDrawHighlight(const Object* object, Color highlight);
 void CardDrawShadowed(const Object* object);

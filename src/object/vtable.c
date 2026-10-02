@@ -122,4 +122,22 @@ void ObjectHandlePicked(Object* object, bool picked)
 	((object_handle_picked)func)(object, picked);
 }
 
+typedef ObjectActionList (*object_get_actions)(const Object*);
+ObjectActionList ObjectGetActions(const Object* object)
+{
+	funcPtr func = vtable[object->type][PurposeGetActions];
+	if (!func) return (ObjectActionList){0};
+
+	return ((object_get_actions)func)(object);
+}
+
+typedef void (*object_handle_action)(Object*, ObjectAction);
+void ObjectHandleAction(Object* object, ObjectAction action)
+{
+	funcPtr func = vtable[object->type][PurposeHandleAction];
+	if (!func) return;
+
+	((object_handle_action)func)(object, action);
+}
+
 #pragma clang diagnostic pop

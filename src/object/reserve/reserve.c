@@ -269,6 +269,36 @@ void ReserveHandlePicked(Object* object, bool picked)
     }
 }
 
+ObjectActionList ReserveGetActions(const Object* object)
+{
+	ObjectActionList result = {0};
+	result.actions[2] = object->_locked ? OA_None : OA_Shuffle;
+	result.actions[3] = object->_locked ? OA_Unlock : OA_Lock;
+	result.count = 4;
+	return result;
+}
+
+void ReserveHandleAction(Object* object, ObjectAction action)
+{
+	if (object->_locked && action != OA_Unlock) return;
+
+	switch (action)
+	{
+		case OA_Shuffle:
+			Shuffle(&object->data.reserve.deck);
+			break;
+		case OA_Lock:
+			object->_locked = true;
+			break;
+		case OA_Unlock:
+			object->_locked = false;
+			break;
+		default:
+			TraceLog(LOG_WARNING, TextFormat("ReserveHandleAction: unhandled ObjectAction %d", action));
+			break;
+	}
+}
+
 void ObjectReserveDrawShadowed(const Object* object)
 {
 	ObjectReserveDrawInternal(object, true, BLANK);

@@ -9,6 +9,10 @@ typedef enum Input
 	InputSecondary,
 	InputScrollUp,
 	InputScrollDown,
+	InputAction1,
+	InputAction2,
+	InputAction3,
+	InputAction4,
 	InputCount
 } Input;
 
@@ -25,3 +29,5 @@ void InputUpdate(void);
 bool InputIs(Input input, InputState state);
 InputState InputGet(Input input);
 Input InputGetPressed(void);
+Input InputGetObjectAction(void);
+int InputObjectActionToNum(Input input);

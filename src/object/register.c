@@ -20,6 +20,8 @@ void RegisterAllObjects(void)
 	ObjectRegisterFunc(ObjectCard, PurposeHandleDrop, (funcPtr)&CardHandleDrop);
 	ObjectRegisterFunc(ObjectCard, PurposeHandleInput, (funcPtr)&CardHandleInput);
 	ObjectRegisterFunc(ObjectCard, PurposeHandlePicked, (funcPtr)&CardHandlePicked);
+	ObjectRegisterFunc(ObjectCard, PurposeGetActions, (funcPtr)&CardGetActions);
+	ObjectRegisterFunc(ObjectCard, PurposeHandleAction, (funcPtr)&CardHandleAction);
 
 	// Reserve
 	ObjectRegisterFunc(ObjectReserve, PurposeTick, (funcPtr)&ReserveTick);
@@ -32,6 +34,8 @@ void RegisterAllObjects(void)
 	ObjectRegisterFunc(ObjectReserve, PurposeHandleDrop, (funcPtr)&ReserveHandleDrop);
 	ObjectRegisterFunc(ObjectReserve, PurposeHandleInput, (funcPtr)&ReserveHandleInput);
 	ObjectRegisterFunc(ObjectReserve, PurposeHandlePicked, (funcPtr)&ReserveHandlePicked);
+	ObjectRegisterFunc(ObjectReserve, PurposeGetActions, (funcPtr)&ReserveGetActions);
+	ObjectRegisterFunc(ObjectReserve, PurposeHandleAction, (funcPtr)&ReserveHandleAction);
 
 	// Discard
 	ObjectRegisterFunc(ObjectDiscard, PurposeTick, (funcPtr)&DiscardTick);
@@ -44,4 +48,6 @@ void RegisterAllObjects(void)
 	ObjectRegisterFunc(ObjectDiscard, PurposeHandleDrop, (funcPtr)&DiscardHandleDrop);
 	ObjectRegisterFunc(ObjectDiscard, PurposeHandleInput, (funcPtr)&DiscardHandleInput);
 	ObjectRegisterFunc(ObjectDiscard, PurposeHandlePicked, (funcPtr)&DiscardHandlePicked);
+	ObjectRegisterFunc(ObjectDiscard, PurposeGetActions, (funcPtr)&DiscardGetActions);
+	ObjectRegisterFunc(ObjectDiscard, PurposeHandleAction, (funcPtr)&DiscardHandleAction);
 }
